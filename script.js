@@ -16,7 +16,7 @@ gpxFileInput.addEventListener('change', function(event) {
             console.log("File content loaded, length:", fileContent.length);
 
             try {
-                const gpx = new GPXParser(); // GPXParser should be available globally
+                const gpx = new gpxParser(); // Corrected casing
                 gpx.parse(fileContent); // Pass the file content to the parse method
 
                 let infoHtml = `
