@@ -1,0 +1,61 @@
+/* Keep existing styles */
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6; /* Improve general readability */
+}
+
+h1 {
+    color: #333;
+    text-align: center; /* Center the main title */
+    margin-bottom: 30px;
+}
+
+#gpxFile {
+    display: block; /* Make the file input take its own line */
+    margin: 0 auto 20px auto; /* Center the file input */
+    padding: 10px;
+}
+
+#gpxData {
+    padding: 20px; /* Increase padding */
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px; /* Slightly more rounded corners */
+    min-height: 100px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Add a subtle shadow */
+}
+
+#gpxData p {
+    margin-bottom: 10px; /* Space out paragraphs within the data display */
+}
+
+#gpxData strong {
+    color: #555; /* Slightly darker labels */
+}
+
+#gpxData ul {
+    list-style-type: none; /* Remove default bullets */
+    padding-left: 0; /* Remove default padding */
+}
+
+#gpxData li {
+    background-color: #f9f9f9; /* Light background for list items */
+    border: 1px solid #eee;
+    padding: 8px 12px;
+    margin-bottom: 5px; /* Space between list items */
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* Style for error messages (assuming they might be in a <p> with a specific class or inline style) */
+.error-message { /* Or target p[style*="color: red"] if that's how it's implemented */
+    color: #d9534f; /* Bootstrap's danger color */
+    font-weight: bold;
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    padding: 10px;
+    border-radius: 4px;
+}
