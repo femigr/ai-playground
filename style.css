@@ -5,6 +5,7 @@ body {
     background-color: #f4f4f4;
     color: #333;
     line-height: 1.6; /* Improve general readability */
+    padding-bottom: 60px; /* Adjusted for compact horizontal footer */
 }
 
 h1 {
@@ -65,6 +66,53 @@ h1 {
     width: 100%;
     margin-bottom: 20px;
     border: 1px solid #ccc;
+}
+
+#statsContainer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f9f9f9;
+    border-top: 1px solid #ccc; /* Changed from full border */
+    padding: 10px 15px;         /* Adjusted padding */
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1); /* Shadow on top edge */
+    z-index: 1000;
+    /* text-align: center; */ /* Optional: if stats items should be centered */
+}
+
+/*
+#statsContainer p {
+    margin: 8px 0;
+    font-size: 0.95em;
+    color: #333;
+}
+
+#statsContainer p strong {
+    color: #000;
+    margin-right: 5px;
+}
+*/
+
+#statsInnerContainer {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on very small screens */
+    justify-content: space-around; /* Distribute items evenly with space around */
+    align-items: center; /* Align items vertically in the center */
+    width: 100%; /* Ensure it uses the full width of statsContainer */
+}
+
+.stat-item {
+    padding: 5px 10px; /* Padding within each stat item */
+    white-space: nowrap; /* Prevent labels and values from breaking into new lines */
+    text-align: center; /* Center text within the span if needed */
+    font-size: 0.9em; /* Consistent font size with other stats */
+    color: #333; /* Consistent text color */
+}
+
+.stat-item strong {
+    color: #000; /* Black color for the statistic label */
+    margin-right: 5px; /* Space after the label */
 }
 
 #altitudeChartContainer,
