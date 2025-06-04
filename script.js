@@ -3,12 +3,15 @@ console.log("script.js loaded");
 
 // Register Chart.js Annotation Plugin
 if (typeof Chart !== 'undefined') {
-    if (typeof ChartJsPluginAnnotation !== 'undefined') { // For chartjs-plugin-annotation v2+
+    if (typeof ChartJsPluginAnnotation !== 'undefined') { // Check for v2+ style
         Chart.register(ChartJsPluginAnnotation);
-        console.log("ChartJsPluginAnnotation (v2+) registered.");
-    } else if (typeof ChartAnnotation !== 'undefined') { // For older v1.x
+        console.log("ChartJsPluginAnnotation (likely v2+) registered.");
+    } else if (typeof annotationPlugin !== 'undefined') { // New check for v3+ style (ESM import style)
+        Chart.register(annotationPlugin);
+        console.log("annotationPlugin (likely v3+) registered.");
+    } else if (typeof ChartAnnotation !== 'undefined') { // Fallback for older v1.x style
         Chart.register(ChartAnnotation);
-        console.log("ChartAnnotation (v1.x) registered.");
+        console.log("ChartAnnotation (likely v1.x) registered.");
     } else {
         console.error("Chart.js Annotation plugin object not found. Vertical lines may not work.");
     }
