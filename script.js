@@ -416,20 +416,21 @@ function updateHighlight(index) {
             if (!altitudeChart.getActiveElements() || altitudeChart.getActiveElements().length === 0 || altitudeChart.getActiveElements()[0].index !== index) {
                 altitudeChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
             }
-            const altitudeOptions = altitudeChart.options;
-            altitudeOptions.plugins = altitudeOptions.plugins || {};
-            altitudeOptions.plugins.annotation = {
-                drawTime: 'afterDatasetsDraw',
-                annotations: {
-                    verticalLine: {
-                        type: 'line',
-                        scaleID: 'x',
-                        value: index,
-                        borderColor: 'rgba(100, 100, 100, 0.7)', // Grey color
-                        borderWidth: 1.5,
-                    }
-                }
+            // Ensure the plugin options structure exists
+            altitudeChart.options.plugins = altitudeChart.options.plugins || {};
+            altitudeChart.options.plugins.annotation = altitudeChart.options.plugins.annotation || {};
+            altitudeChart.options.plugins.annotation.annotations = altitudeChart.options.plugins.annotation.annotations || {};
+
+            // Define or update the verticalLine annotation
+            altitudeChart.options.plugins.annotation.annotations.verticalLine = {
+                type: 'line',
+                scaleID: 'x',
+                value: index,
+                borderColor: 'rgba(100, 100, 100, 0.7)',
+                borderWidth: 1.5,
             };
+            // Ensure drawTime is set on the main annotation plugin config
+            altitudeChart.options.plugins.annotation.drawTime = 'afterDatasetsDraw';
             altitudeChart.update();
         }
 
@@ -438,20 +439,21 @@ function updateHighlight(index) {
             if (!speedChart.getActiveElements() || speedChart.getActiveElements().length === 0 || speedChart.getActiveElements()[0].index !== index) {
                 speedChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
             }
-            const speedOptions = speedChart.options;
-            speedOptions.plugins = speedOptions.plugins || {};
-            speedOptions.plugins.annotation = {
-                drawTime: 'afterDatasetsDraw',
-                annotations: {
-                    verticalLine: {
-                        type: 'line',
-                        scaleID: 'x',
-                        value: index,
-                        borderColor: 'rgba(100, 100, 100, 0.7)', // Grey color
-                        borderWidth: 1.5,
-                    }
-                }
+            // Ensure the plugin options structure exists
+            speedChart.options.plugins = speedChart.options.plugins || {};
+            speedChart.options.plugins.annotation = speedChart.options.plugins.annotation || {};
+            speedChart.options.plugins.annotation.annotations = speedChart.options.plugins.annotation.annotations || {};
+
+            // Define or update the verticalLine annotation
+            speedChart.options.plugins.annotation.annotations.verticalLine = {
+                type: 'line',
+                scaleID: 'x',
+                value: index,
+                borderColor: 'rgba(100, 100, 100, 0.7)',
+                borderWidth: 1.5,
             };
+            // Ensure drawTime is set on the main annotation plugin config
+            speedChart.options.plugins.annotation.drawTime = 'afterDatasetsDraw';
             speedChart.update();
         }
         // console.log("Highlighting point index:", index, "Lat:", point.lat, "Lon:", point.lon);
