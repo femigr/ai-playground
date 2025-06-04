@@ -65,11 +65,10 @@ gpxFileInput.addEventListener('change', function(event) {
                 for (let i = 0; i < rawPoints.length; i++) {
                     const currentRawPoint = rawPoints[i];
                     let distanceFromPrevious = 0;
-                    let currentSpeed = 0; // Renamed from 'speed' to avoid conflict if point.speed exists
+                    let currentRawSpeed = 0; // Store as raw speed
 
                     if (i > 0) {
                         const prevRawPoint = rawPoints[i-1];
-                        // Ensure lat/lon are numbers before calculating distance
                         const lat1 = parseFloat(prevRawPoint.lat);
                         const lon1 = parseFloat(prevRawPoint.lon);
                         const lat2 = parseFloat(currentRawPoint.lat);
@@ -85,7 +84,7 @@ gpxFileInput.addEventListener('change', function(event) {
                         if (!isNaN(currentTime) && !isNaN(prevTime)) {
                             const timeDiff = (currentTime - prevTime) / 1000; // seconds
                             if (timeDiff > 0) {
-                                currentSpeed = (distanceFromPrevious / timeDiff) * 3.6; // m/s to km/h
+                                currentRawSpeed = (distanceFromPrevious / timeDiff) * 3.6; // m/s to km/h
                             }
                         }
                     }
@@ -95,12 +94,38 @@ gpxFileInput.addEventListener('change', function(event) {
                         lat: parseFloat(currentRawPoint.lat),
                         lon: parseFloat(currentRawPoint.lon),
                         alt: currentRawPoint.ele !== undefined ? parseFloat(currentRawPoint.ele) : null,
-                        time: new Date(currentRawPoint.time),
+                        time: new Date(currentRawPoint.time), // Keep as Date object
                         distanceFromStart: totalDistance,
-                        speed: currentSpeed // Store speed as a number
+                        rawSpeed: currentRawSpeed, // Store raw speed
+                        speed: 0 // Placeholder for smoothed speed
                     });
                 }
                 gpxData.totalDistance = totalDistance;
+
+                // Second pass: Calculate smoothed speed (20-second floating average)
+                const timeWindowSeconds = 20;
+                for (let i = 0; i < gpxData.points.length; i++) {
+                    const currentPoint = gpxData.points[i];
+                    const currentTimeMs = currentPoint.time.getTime();
+                    let sumSpeeds = 0;
+                    let countSpeeds = 0;
+
+                    // Look backwards for points within the time window
+                    for (let j = i; j >= 0; j--) {
+                        const pastPoint = gpxData.points[j];
+                        const pastTimeMs = pastPoint.time.getTime();
+
+                        if ((currentTimeMs - pastTimeMs) / 1000 <= timeWindowSeconds) {
+                            if (pastPoint.rawSpeed !== null && isFinite(pastPoint.rawSpeed)) {
+                                sumSpeeds += pastPoint.rawSpeed;
+                                countSpeeds++;
+                            }
+                        } else {
+                            break; // Points are too old, stop searching
+                        }
+                    }
+                    gpxData.points[i].speed = (countSpeeds > 0) ? (sumSpeeds / countSpeeds) : currentPoint.rawSpeed; // Use raw if no window
+                }
                 // ---> End of new section <---
 
                 // Call functions to initialize map and charts
@@ -140,6 +165,20 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 function deg2rad(deg) {
     return deg * (Math.PI / 180);
+}
+
+function formatDistanceLabel(distanceKm) {
+    if (distanceKm >= 100) {
+        return Math.round(distanceKm) + 'km';
+    } else {
+        // Use toFixed(1) for one decimal place, then parseFloat to remove trailing .0 if any
+        let formatted = parseFloat(distanceKm.toFixed(1));
+        // Ensure that numbers like 1.0 are displayed as "1km" not "1.0km" if that's desired,
+        // or always show one decimal place if < 100km.
+        // The user request "1.2345km should be 1.2km" implies toFixed(1) is good.
+        // "112.3452km should be 112km" is Math.round().
+        return formatted + 'km';
+    }
 }
 
 // Placeholder functions
@@ -215,7 +254,7 @@ function createAltitudeChart(gpxData) { // Renamed parameter
         return;
     }
 
-    const labels = gpxData.points.map(p => (p.distanceFromStart / 1000).toFixed(2));
+    const labels = gpxData.points.map(p => formatDistanceLabel(p.distanceFromStart / 1000));
     const altitudeData = gpxData.points.map(p => p.alt !== null ? p.alt.toFixed(2) : null);
 
     if (altitudeChart) {
@@ -278,7 +317,7 @@ function createSpeedChart(gpxData) { // Renamed parameter
         return;
     }
 
-    const labels = gpxData.points.map(p => (p.distanceFromStart / 1000).toFixed(2));
+    const labels = gpxData.points.map(p => formatDistanceLabel(p.distanceFromStart / 1000));
     const speedData = gpxData.points.map(p => (p.speed !== null && isFinite(p.speed)) ? p.speed.toFixed(2) : null);
 
     if (speedChart) {
@@ -289,7 +328,7 @@ function createSpeedChart(gpxData) { // Renamed parameter
         data: {
             labels: labels,
             datasets: [{
-                label: 'Speed (km/h)',
+                label: 'Smoothed Speed (km/h, 20s avg)', // Updated label
                 data: speedData,
                 borderColor: 'rgb(255, 99, 132)',
                 tension: 0.1,

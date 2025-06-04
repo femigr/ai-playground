@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="GPXLabelTest"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.topografix.com/GPX/1/1"
+    xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+    <metadata>
+        <name>Sample GPX Track for Label Formatting Test</name>
+        <time>2023-10-26T10:00:00Z</time>
+    </metadata>
+    <trk>
+        <name>Label Test Track</name>
+        <trkseg>
+            <trkpt lat="40.7128" lon="-74.0060"> <!-- Start Point (0km) -->
+                <ele>10</ele>
+                <time>2023-10-26T10:00:00Z</time>
+            </trkpt>
+            <trkpt lat="40.7137" lon="-74.0048"> <!-- Approx 0.12 km -->
+                <ele>12</ele>
+                <time>2023-10-26T10:01:00Z</time>
+            </trkpt>
+            <trkpt lat="40.7210" lon="-73.9900"> <!-- Approx 1.0 km from previous, total ~1.12km -->
+                <ele>15</ele>
+                <time>2023-10-26T10:05:00Z</time>
+            </trkpt>
+            <trkpt lat="40.7290" lon="-73.9750"> <!-- Approx 1.2 km from previous, total ~2.32km -->
+                <ele>20</ele>
+                <time>2023-10-26T10:10:00Z</time>
+            </trkpt>
+            <trkpt lat="40.8000" lon="-73.9000"> <!-- Approx 8.0 km from previous, total ~10.32km -->
+                <ele>25</ele>
+                <time>2023-10-26T10:30:00Z</time>
+            </trkpt>
+            <trkpt lat="40.8000" lon="-73.8800"> <!-- Approx 1.5 km from previous, total ~11.82km -->
+                <ele>22</ele>
+                <time>2023-10-26T10:35:00Z</time>
+            </trkpt>
+            <!-- Add many points to simulate a longer distance for >100km testing if needed -->
+            <!-- For >100km, the logic review is the primary check for this subtask -->
+            <!-- Let's add a significant jump to demonstrate a point that would be formatted by the >100km rule if it became a tick -->
+            <!-- This specific point likely won't be a tick, but its value would be formatted correctly if passed to formatDistanceLabel -->
+            <trkpt lat="41.8000" lon="-72.8800"> <!-- Approx 110 km from previous, total ~121.82km -->
+                <ele>30</ele>
+                <time>2023-10-26T12:35:00Z</time>
+            </trkpt>
+        </trkseg>
+    </trk>
+</gpx>
