@@ -5,7 +5,7 @@ body {
     background-color: #f4f4f4;
     color: #333;
     line-height: 1.6; /* Improve general readability */
-    padding-bottom: 180px; /* Adjust this value as needed based on actual footer height */
+    padding-bottom: 60px; /* Adjusted for compact horizontal footer */
 }
 
 h1 {
@@ -81,14 +81,37 @@ h1 {
     /* text-align: center; */ /* Optional: if stats items should be centered */
 }
 
+/*
 #statsContainer p {
-    margin: 8px 0; /* Space between paragraph elements */
-    font-size: 0.95em; /* Slightly smaller font size for stats lines */
-    color: #333; /* Dark grey text color for readability */
+    margin: 8px 0;
+    font-size: 0.95em;
+    color: #333;
 }
 
 #statsContainer p strong {
-    color: #000; /* Black color for the statistic label (e.g., "Total Distance:") */
+    color: #000;
+    margin-right: 5px;
+}
+*/
+
+#statsInnerContainer {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on very small screens */
+    justify-content: space-around; /* Distribute items evenly with space around */
+    align-items: center; /* Align items vertically in the center */
+    width: 100%; /* Ensure it uses the full width of statsContainer */
+}
+
+.stat-item {
+    padding: 5px 10px; /* Padding within each stat item */
+    white-space: nowrap; /* Prevent labels and values from breaking into new lines */
+    text-align: center; /* Center text within the span if needed */
+    font-size: 0.9em; /* Consistent font size with other stats */
+    color: #333; /* Consistent text color */
+}
+
+.stat-item strong {
+    color: #000; /* Black color for the statistic label */
     margin-right: 5px; /* Space after the label */
 }
 

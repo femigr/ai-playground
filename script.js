@@ -512,19 +512,30 @@ function calculateAndDisplayStats(gpxData) {
     }
 
     // Format for display
-    const distanceKm = (totalDistanceMeters / 1000).toFixed(2);
-    const formattedTime = formatDuration(totalTimeInSeconds);
-    const avgSpeedKmh = calculatedAverageSpeedKmh.toFixed(1);
-    const totalAscentMeters = Math.round(calculatedTotalAscent);
-    const maxSpeedKmh = calculatedMaxSpeedKmh.toFixed(1);
+    // const distanceKm = (totalDistanceMeters / 1000).toFixed(2);
+    // const formattedTime = formatDuration(totalTimeInSeconds);
+    // const avgSpeedKmh = calculatedAverageSpeedKmh.toFixed(1);
+    // const totalAscentMetersFormatted = Math.round(calculatedTotalAscent);
+    // const maxSpeedKmh = calculatedMaxSpeedKmh.toFixed(1);
 
-    const htmlContent = `
-        <p><strong>Total Distance:</strong> ${distanceKm} km</p>
-        <p><strong>Total Time:</strong> ${formattedTime}</p>
-        <p><strong>Average Speed:</strong> ${avgSpeedKmh} km/h</p>
-        <p><strong>Total Ascent:</strong> ${totalAscentMeters} m</p>
-        <p><strong>Max Speed:</strong> ${maxSpeedKmh} km/h</p>
-    `;
+    const statsData = [
+        { label: "Dist:", value: `${(totalDistanceMeters / 1000).toFixed(2)} km` },
+        { label: "Time:", value: formatDuration(totalTimeInSeconds) },
+        { label: "Avg Spd:", value: `${calculatedAverageSpeedKmh.toFixed(1)} km/h` },
+        { label: "Asc:", value: `${Math.round(calculatedTotalAscent)} m` },
+        { label: "Max Spd:", value: `${calculatedMaxSpeedKmh.toFixed(1)} km/h` }
+    ];
 
-    statsContainer.innerHTML = htmlContent;
+    // const statsContainer is already defined above and checked for existence.
+    // No need to get it again if it's already available in this scope.
+    // Assuming statsContainer is correctly fetched at the beginning of the function.
+
+    // Create HTML for the stats items
+    let statsHTML = '<div id="statsInnerContainer">'; // Inner container for flex layout
+    statsData.forEach(stat => {
+        statsHTML += `<span class="stat-item"><strong>${stat.label}</strong> ${stat.value}</span>`;
+    });
+    statsHTML += '</div>';
+
+    statsContainer.innerHTML = statsHTML;
 }
