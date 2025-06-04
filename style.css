@@ -5,6 +5,7 @@ body {
     background-color: #f4f4f4;
     color: #333;
     line-height: 1.6; /* Improve general readability */
+    padding-bottom: 180px; /* Adjust this value as needed based on actual footer height */
 }
 
 h1 {
@@ -68,13 +69,16 @@ h1 {
 }
 
 #statsContainer {
-    background-color: #f9f9f9; /* Light grey background */
-    border: 1px solid #ddd;    /* Light grey border */
-    border-radius: 5px;        /* Rounded corners */
-    padding: 15px;             /* Padding inside the container */
-    margin-top: 20px;          /* Space above the container */
-    margin-bottom: 20px;       /* Space below the container */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f9f9f9;
+    border-top: 1px solid #ccc; /* Changed from full border */
+    padding: 10px 15px;         /* Adjusted padding */
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1); /* Shadow on top edge */
+    z-index: 1000;
+    /* text-align: center; */ /* Optional: if stats items should be centered */
 }
 
 #statsContainer p {
