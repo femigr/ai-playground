@@ -146,6 +146,7 @@ gpxFileInput.addEventListener('change', function(event) {
                 initMap(gpxData);
                 createAltitudeChart(gpxData);
                 createSpeedChart(gpxData);
+                calculateAndDisplayStats(gpxData); // Display stats after processing
 
             } catch (error) {
                 console.error("Error parsing GPX file:", error);
@@ -179,6 +180,14 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 function deg2rad(deg) {
     return deg * (Math.PI / 180);
+}
+
+function formatDuration(totalSeconds) {
+    if (isNaN(totalSeconds) || totalSeconds < 0) return "N/A";
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
 function formatDistanceLabel(distanceKm) {
@@ -456,4 +465,66 @@ function updateHighlight(index) {
         }
         // console.log("Highlighting point index:", index, "Lat:", point.lat, "Lon:", point.lon);
     }, 10); // Debounce time in ms (e.g., 10-50ms)
+}
+
+function calculateAndDisplayStats(gpxData) {
+    const statsContainer = document.getElementById('statsContainer');
+    if (!statsContainer) {
+        console.error("Stats container not found!");
+        return;
+    }
+
+    const totalDistanceMeters = gpxData.totalDistance; // Already in meters
+
+    let totalTimeInSeconds = 0;
+    if (gpxData.points && gpxData.points.length > 1) {
+        const firstPointTime = gpxData.points[0].time.getTime();
+        const lastPointTime = gpxData.points[gpxData.points.length - 1].time.getTime();
+        totalTimeInSeconds = (lastPointTime - firstPointTime) / 1000;
+    }
+
+    let calculatedAverageSpeedKmh = 0;
+    if (totalTimeInSeconds > 0) {
+        calculatedAverageSpeedKmh = (totalDistanceMeters / totalTimeInSeconds) * 3.6; // m/s to km/h
+    }
+
+    let calculatedTotalAscent = 0;
+    if (gpxData.points) {
+        for (let i = 1; i < gpxData.points.length; i++) {
+            const prevPoint = gpxData.points[i-1];
+            const currentPoint = gpxData.points[i];
+            if (prevPoint.alt !== null && currentPoint.alt !== null && !isNaN(prevPoint.alt) && !isNaN(currentPoint.alt)) {
+                if (currentPoint.alt > prevPoint.alt) {
+                    calculatedTotalAscent += currentPoint.alt - prevPoint.alt;
+                }
+            }
+        }
+    }
+
+    let calculatedMaxSpeedKmh = 0;
+    if (gpxData.points) {
+        gpxData.points.forEach(point => {
+            // Assuming point.speed is the smoothed speed in km/h
+            if (point.speed !== null && !isNaN(point.speed) && point.speed > calculatedMaxSpeedKmh) {
+                calculatedMaxSpeedKmh = point.speed;
+            }
+        });
+    }
+
+    // Format for display
+    const distanceKm = (totalDistanceMeters / 1000).toFixed(2);
+    const formattedTime = formatDuration(totalTimeInSeconds);
+    const avgSpeedKmh = calculatedAverageSpeedKmh.toFixed(1);
+    const totalAscentMeters = Math.round(calculatedTotalAscent);
+    const maxSpeedKmh = calculatedMaxSpeedKmh.toFixed(1);
+
+    const htmlContent = `
+        <p><strong>Total Distance:</strong> ${distanceKm} km</p>
+        <p><strong>Total Time:</strong> ${formattedTime}</p>
+        <p><strong>Average Speed:</strong> ${avgSpeedKmh} km/h</p>
+        <p><strong>Total Ascent:</strong> ${totalAscentMeters} m</p>
+        <p><strong>Max Speed:</strong> ${maxSpeedKmh} km/h</p>
+    `;
+
+    statsContainer.innerHTML = htmlContent;
 }

@@ -67,6 +67,27 @@ h1 {
     border: 1px solid #ccc;
 }
 
+#statsContainer {
+    background-color: #f9f9f9; /* Light grey background */
+    border: 1px solid #ddd;    /* Light grey border */
+    border-radius: 5px;        /* Rounded corners */
+    padding: 15px;             /* Padding inside the container */
+    margin-top: 20px;          /* Space above the container */
+    margin-bottom: 20px;       /* Space below the container */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+}
+
+#statsContainer p {
+    margin: 8px 0; /* Space between paragraph elements */
+    font-size: 0.95em; /* Slightly smaller font size for stats lines */
+    color: #333; /* Dark grey text color for readability */
+}
+
+#statsContainer p strong {
+    color: #000; /* Black color for the statistic label (e.g., "Total Distance:") */
+    margin-right: 5px; /* Space after the label */
+}
+
 #altitudeChartContainer,
 #speedChartContainer {
     height: 300px;
