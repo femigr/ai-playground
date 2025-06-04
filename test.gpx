@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="GPXAnalyzerTest"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.topografix.com/GPX/1/1"
+    xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+    <metadata>
+        <name>Sample GPX Track for Testing</name>
+        <time>2023-01-01T10:00:00Z</time>
+    </metadata>
+    <trk>
+        <name>Test Track 1</name>
+        <trkseg>
+            <trkpt lat="34.052235" lon="-118.243683">
+                <ele>70.0</ele>
+                <time>2023-01-01T10:00:00Z</time>
+            </trkpt>
+            <trkpt lat="34.052300" lon="-118.243000">
+                <ele>72.5</ele>
+                <time>2023-01-01T10:00:30Z</time>
+            </trkpt>
+            <trkpt lat="34.052450" lon="-118.242500">
+                <ele>75.0</ele>
+                <time>2023-01-01T10:01:00Z</time>
+            </trkpt>
+            <trkpt lat="34.052600" lon="-118.242000">
+                <!-- Missing elevation data here -->
+                <time>2023-01-01T10:01:30Z</time>
+            </trkpt>
+            <trkpt lat="34.052750" lon="-118.241500">
+                <ele>72.0</ele>
+                <time>2023-01-01T10:02:00Z</time>
+            </trkpt>
+            <trkpt lat="34.052900" lon="-118.241000">
+                <ele>70.0</ele>
+                <time>2023-01-01T10:02:30Z</time>
+            </trkpt>
+            <trkpt lat="34.053000" lon="-118.240500">
+                <ele>71.5</ele>
+                <time>2023-01-01T10:03:00Z</time>
+            </trkpt>
+             <trkpt lat="34.053100" lon="-118.240000">
+                <ele>73.0</ele>
+                <time>2023-01-01T10:03:30Z</time>
+            </trkpt>
+            <trkpt lat="34.053200" lon="-118.239500">
+                <ele>72.5</ele>
+                <time>2023-01-01T10:04:00Z</time>
+            </trkpt>
+            <trkpt lat="34.053300" lon="-118.239000">
+                <ele>70.0</ele>
+                <time>2023-01-01T10:04:30Z</time>
+            </trkpt>
+        </trkseg>
+    </trk>
+</gpx>
