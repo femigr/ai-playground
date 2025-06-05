@@ -19,13 +19,15 @@
         <canvas id="speedChart"></canvas>
     </div>
     <div id="statsContainer"></div>
-    <button id="resetSelectionBtn">Reset Selection / View Full Track</button>
     <div id="gpxData">
         <p>Upload a GPX file to view the track on the map and analyze altitude/speed profiles.</p>
     </div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.2.1/chartjs-plugin-annotation.min.js" integrity="sha512-qF3TcvJFFDRChjrP4H_bTjTjQWAGPFkvSXhHqHGbJgK3LqP_K9KNPZJxwYQhH7QeX3yK2LhGZKyJ7jB+j8Hw1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="script.js"></script>
+    <footer>
+        <button id="resetSelectionBtn">Reset Selection / View Full Track</button>
+    </footer>
 </body>
 </html>

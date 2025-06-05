@@ -68,6 +68,27 @@ h1 {
     border: 1px solid #ccc;
 }
 
+/* Add to the end of style.css */
+footer {
+    text-align: center;
+    padding: 10px 0;
+    margin-top: 20px;
+    border-top: 1px solid #ccc; /* Optional: adds a separator line */
+}
+
+#resetSelectionBtn {
+    padding: 8px 15px;
+    font-size: 0.9em;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#resetSelectionBtn:hover {
+    background-color: #e0e0e0;
+}
+
 #statsContainer {
     position: fixed;
     bottom: 0;
