@@ -1,15 +1,73 @@
-/* Keep existing styles */
+:root {
+  --background-color: #f4f4f4;
+  --text-color: #333;
+  --header-color: #333;
+  --gpx-data-bg: #fff;
+  --gpx-data-border: #ddd;
+  --gpx-data-shadow: rgba(0,0,0,0.1);
+  --gpx-data-list-item-bg: #f9f9f9;
+  --gpx-data-list-item-border: #eee;
+  --gpx-data-strong-color: #555;
+  --stats-bg: #f9f9f9;
+  --stats-border: #ccc;
+  --stats-shadow: rgba(0,0,0,0.1);
+  --stats-text-color: #333;
+  --stats-label-color: #000;
+  --chart-border-color: #ccc;
+  --map-border-color: #ccc;
+  --leaflet-tile-filter: none; /* No filter for light mode tiles */
+  --input-bg-color: #fff;
+  --input-text-color: #000; /* Assuming text color for input is black in light mode */
+  --input-border-color: #ccc; /* Assuming a light grey border for input */
+  --select-bg-color: #fff;
+  --select-text-color: #333;
+  --select-border-color: #ccc;
+  --error-text-color: #d9534f;
+  --error-bg-color: #f2dede;
+  --error-border-color: #ebccd1;
+}
+
+[data-theme="dark"] {
+  --background-color: #121212;
+  --text-color: #e0e0e0;
+  --header-color: #e0e0e0;
+  --gpx-data-bg: #1e1e1e;
+  --gpx-data-border: #444;
+  --gpx-data-shadow: rgba(255,255,255,0.05); /* Lighter shadow for dark mode */
+  --gpx-data-list-item-bg: #2a2a2a;
+  --gpx-data-list-item-border: #3a3a3a;
+  --gpx-data-strong-color: #bbb;
+  --stats-bg: #1e1e1e;
+  --stats-border: #444;
+  --stats-shadow: rgba(255,255,255,0.05); /* Lighter shadow */
+  --stats-text-color: #e0e0e0;
+  --stats-label-color: #ffffff;
+  --chart-border-color: #444;
+  --map-border-color: #444;
+  --leaflet-tile-filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); /* Filter for dark mode tiles */
+  --input-bg-color: #333;
+  --input-text-color: #e0e0e0;
+  --input-border-color: #555;
+  --select-bg-color: #333;
+  --select-text-color: #e0e0e0;
+  --select-border-color: #555;
+  --error-text-color: #f8d7da; /* Lighter red for dark background */
+  --error-bg-color: #4a1a1f; /* Darker red background */
+  --error-border-color: #a36368; /* Muted red border */
+}
+
+/* Apply variables */
 body {
     font-family: sans-serif;
     margin: 20px;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: var(--background-color);
+    color: var(--text-color);
     line-height: 1.6; /* Improve general readability */
     padding-bottom: 60px; /* Adjusted for compact horizontal footer */
 }
 
 h1 {
-    color: #333;
+    color: var(--header-color);
     text-align: center; /* Center the main title */
     margin-bottom: 30px;
 }
@@ -18,23 +76,28 @@ h1 {
     display: block; /* Make the file input take its own line */
     margin: 0 auto 20px auto; /* Center the file input */
     padding: 10px;
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
+    border: 1px solid var(--input-border-color);
+    border-radius: 4px; /* Added for consistency */
 }
 
 #gpxData {
     padding: 20px; /* Increase padding */
-    background-color: #fff;
-    border: 1px solid #ddd;
+    background-color: var(--gpx-data-bg);
+    border: 1px solid var(--gpx-data-border);
     border-radius: 8px; /* Slightly more rounded corners */
     min-height: 100px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Add a subtle shadow */
+    box-shadow: 0 2px 4px var(--gpx-data-shadow); /* Add a subtle shadow */
 }
 
 #gpxData p {
     margin-bottom: 10px; /* Space out paragraphs within the data display */
+    color: var(--text-color); /* Ensure p tags inside inherit body text color */
 }
 
 #gpxData strong {
-    color: #555; /* Slightly darker labels */
+    color: var(--gpx-data-strong-color); /* Slightly darker labels */
 }
 
 #gpxData ul {
@@ -43,20 +106,21 @@ h1 {
 }
 
 #gpxData li {
-    background-color: #f9f9f9; /* Light background for list items */
-    border: 1px solid #eee;
+    background-color: var(--gpx-data-list-item-bg);
+    border: 1px solid var(--gpx-data-list-item-border);
     padding: 8px 12px;
     margin-bottom: 5px; /* Space between list items */
     border-radius: 4px;
     font-size: 0.9em;
+    color: var(--text-color); /* Ensure list item text also uses theme color */
 }
 
-/* Style for error messages (assuming they might be in a <p> with a specific class or inline style) */
-.error-message { /* Or target p[style*="color: red"] if that's how it's implemented */
-    color: #d9534f; /* Bootstrap's danger color */
+/* Style for error messages */
+.error-message {
+    color: var(--error-text-color);
     font-weight: bold;
-    background-color: #f2dede;
-    border: 1px solid #ebccd1;
+    background-color: var(--error-bg-color);
+    border: 1px solid var(--error-border-color);
     padding: 10px;
     border-radius: 4px;
 }
@@ -65,7 +129,11 @@ h1 {
     height: 400px;
     width: 100%;
     margin-bottom: 20px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--map-border-color);
+}
+
+[data-theme="dark"] .leaflet-tile-pane {
+    filter: var(--leaflet-tile-filter);
 }
 
 #statsContainer {
@@ -73,46 +141,32 @@ h1 {
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: #f9f9f9;
-    border-top: 1px solid #ccc; /* Changed from full border */
-    padding: 10px 15px;         /* Adjusted padding */
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.1); /* Shadow on top edge */
+    background-color: var(--stats-bg);
+    border-top: 1px solid var(--stats-border);
+    padding: 10px 15px;
+    box-shadow: 0 -2px 5px var(--stats-shadow);
     z-index: 1000;
-    /* text-align: center; */ /* Optional: if stats items should be centered */
 }
-
-/*
-#statsContainer p {
-    margin: 8px 0;
-    font-size: 0.95em;
-    color: #333;
-}
-
-#statsContainer p strong {
-    color: #000;
-    margin-right: 5px;
-}
-*/
 
 #statsInnerContainer {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on very small screens */
-    justify-content: space-around; /* Distribute items evenly with space around */
-    align-items: center; /* Align items vertically in the center */
-    width: 100%; /* Ensure it uses the full width of statsContainer */
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
 }
 
 .stat-item {
-    padding: 5px 10px; /* Padding within each stat item */
-    white-space: nowrap; /* Prevent labels and values from breaking into new lines */
-    text-align: center; /* Center text within the span if needed */
-    font-size: 0.9em; /* Consistent font size with other stats */
-    color: #333; /* Consistent text color */
+    padding: 5px 10px;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--stats-text-color);
 }
 
 .stat-item strong {
-    color: #000; /* Black color for the statistic label */
-    margin-right: 5px; /* Space after the label */
+    color: var(--stats-label-color);
+    margin-right: 5px;
 }
 
 #altitudeChartContainer,
@@ -120,5 +174,27 @@ h1 {
     height: 300px;
     width: 100%;
     margin-bottom: 20px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--chart-border-color);
+    background-color: var(--gpx-data-bg); /* Match chart background with gpxData for consistency */
+}
+
+.theme-selector {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px;
+  background-color: var(--background-color);
+  border-radius: 5px;
+  z-index: 1001; /* Ensure it's above map but below potential modals if any */
+}
+.theme-selector label {
+  margin-right: 5px;
+  color: var(--text-color);
+}
+.theme-selector select {
+  padding: 5px;
+  border-radius: 3px;
+  border: 1px solid var(--select-border-color);
+  background-color: var(--select-bg-color);
+  color: var(--select-text-color);
 }

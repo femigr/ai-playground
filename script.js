@@ -269,6 +269,12 @@ function createAltitudeChart(gpxData) { // Renamed parameter
     if (altitudeChart) {
         altitudeChart.destroy();
     }
+
+    const isDarkMode = docElement.getAttribute('data-theme') === 'dark';
+    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const labelColor = isDarkMode ? '#e0e0e0' : '#333';
+    const datasetBorderColorAltitude = isDarkMode ? 'rgb(100, 217, 217)' : 'rgb(75, 192, 192)'; // Adjusted dark mode color slightly
+
     altitudeChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -276,7 +282,7 @@ function createAltitudeChart(gpxData) { // Renamed parameter
             datasets: [{
                 label: 'Altitude (m)',
                 data: altitudeData,
-                borderColor: 'rgb(75, 192, 192)',
+                borderColor: datasetBorderColorAltitude,
                 tension: 0.1,
                 pointRadius: 0,
                 pointHitRadius: 10
@@ -289,13 +295,26 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                 x: {
                     title: {
                         display: true,
-                        text: 'Distance (km)'
-                    }
+                        text: 'Distance (km)',
+                        color: labelColor
+                    },
+                    ticks: { color: labelColor },
+                    grid: { color: gridColor }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Altitude (m)'
+                        text: 'Altitude (m)',
+                        color: labelColor
+                    },
+                    ticks: { color: labelColor },
+                    grid: { color: gridColor }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: labelColor
                     }
                 }
             },
@@ -337,6 +356,12 @@ function createSpeedChart(gpxData) { // Renamed parameter
     if (speedChart) {
         speedChart.destroy();
     }
+
+    const isDarkMode = docElement.getAttribute('data-theme') === 'dark';
+    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const labelColor = isDarkMode ? '#e0e0e0' : '#333';
+    const datasetBorderColorSpeed = isDarkMode ? 'rgb(255, 129, 162)' : 'rgb(255, 99, 132)'; // Adjusted dark mode color slightly
+
     speedChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -344,7 +369,7 @@ function createSpeedChart(gpxData) { // Renamed parameter
             datasets: [{
                 label: 'Smoothed Speed (km/h, 20s avg)', // Updated label
                 data: speedData,
-                borderColor: 'rgb(255, 99, 132)',
+                borderColor: datasetBorderColorSpeed,
                 tension: 0.1,
                 pointRadius: 0,
                 pointHitRadius: 10
@@ -357,13 +382,26 @@ function createSpeedChart(gpxData) { // Renamed parameter
                 x: {
                     title: {
                         display: true,
-                        text: 'Distance (km)'
-                    }
+                        text: 'Distance (km)',
+                        color: labelColor
+                    },
+                    ticks: { color: labelColor },
+                    grid: { color: gridColor }
                 },
                 y: {
                     title: {
                         display: true,
-                        text: 'Speed (km/h)'
+                        text: 'Speed (km/h)',
+                        color: labelColor
+                    },
+                    ticks: { color: labelColor },
+                    grid: { color: gridColor }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: labelColor
                     }
                 }
             },
@@ -497,3 +535,54 @@ function calculateAndDisplayStats(gpxData) {
 
     statsContainer.innerHTML = statsHTML;
 }
+
+// Theme Switching Logic
+const themeSelector = document.getElementById('theme');
+const docElement = document.documentElement;
+
+function applyTheme(theme) {
+    let effectiveTheme = theme;
+    if (theme === 'system') {
+        effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    docElement.setAttribute('data-theme', effectiveTheme);
+    localStorage.setItem('theme', theme); // Save the user's explicit choice
+    console.log(`Applied theme: ${theme}, Effective theme: ${effectiveTheme}`);
+
+    // Recreate charts if they exist to apply new theme colors
+    // Ensure gpxData is available and populated
+    if (gpxData && gpxData.points && gpxData.points.length > 0) {
+        if (altitudeChart) {
+            // altitudeChart.destroy(); // Already destroyed in createAltitudeChart
+            createAltitudeChart(gpxData);
+        }
+        if (speedChart) {
+            // speedChart.destroy(); // Already destroyed in createSpeedChart
+            createSpeedChart(gpxData);
+        }
+    }
+}
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        themeSelector.value = savedTheme;
+        applyTheme(savedTheme);
+    } else {
+        themeSelector.value = 'system'; // Default to system
+        applyTheme('system');
+    }
+}
+
+themeSelector.addEventListener('change', (event) => {
+    applyTheme(event.target.value);
+});
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+    if (themeSelector.value === 'system') {
+        applyTheme('system');
+    }
+});
+
+// Initial load
+loadTheme();
