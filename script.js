@@ -1,20 +1,6 @@
 // JavaScript for GPX Analyzer & Editor will go here
 console.log("script.js loaded");
 
-// Register Chart.js Annotation Plugin
-if (typeof Chart !== 'undefined') {
-    if (typeof ChartJsPluginAnnotation !== 'undefined') { // For chartjs-plugin-annotation v2+
-        Chart.register(ChartJsPluginAnnotation);
-        console.log("ChartJsPluginAnnotation (v2+) registered.");
-    } else if (typeof ChartAnnotation !== 'undefined') { // For older v1.x
-        Chart.register(ChartAnnotation);
-        console.log("ChartAnnotation (v1.x) registered.");
-    } else {
-        console.error("Chart.js Annotation plugin object not found. Vertical lines may not work.");
-    }
-}
-
-
 // Global Variables
 let map;
 let altitudeChart;
@@ -323,12 +309,12 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                     // console.log('Altitude chart hover, index:', dataIndex);
                     updateHighlight(dataIndex);
                 }
-            },
-            plugins: { // Add initial empty annotation config
-                annotation: {
-                    annotations: {}
-                }
             }
+            // plugins: { // Add initial empty annotation config
+            //     annotation: {
+            //         annotations: {}
+            //     }
+            // }
         }
     });
 }
@@ -391,12 +377,12 @@ function createSpeedChart(gpxData) { // Renamed parameter
                     // console.log('Speed chart hover, index:', dataIndex);
                     updateHighlight(dataIndex);
                 }
-            },
-            plugins: { // Add initial empty annotation config
-                annotation: {
-                    annotations: {}
-                }
             }
+            // plugins: { // Add initial empty annotation config
+            //     annotation: {
+            //         annotations: {}
+            //     }
+            // }
         }
     });
 }
@@ -424,44 +410,16 @@ function updateHighlight(index) {
         if (altitudeChart && gpxData.points[index]) {
             if (!altitudeChart.getActiveElements() || altitudeChart.getActiveElements().length === 0 || altitudeChart.getActiveElements()[0].index !== index) {
                 altitudeChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
+                altitudeChart.update(); // Update chart after setting active elements
             }
-            const altitudeOptions = altitudeChart.options;
-            altitudeOptions.plugins = altitudeOptions.plugins || {};
-            altitudeOptions.plugins.annotation = {
-                drawTime: 'afterDatasetsDraw',
-                annotations: {
-                    verticalLine: {
-                        type: 'line',
-                        scaleID: 'x',
-                        value: index,
-                        borderColor: 'rgba(100, 100, 100, 0.7)', // Grey color
-                        borderWidth: 1.5,
-                    }
-                }
-            };
-            altitudeChart.update();
         }
 
         // Speed Chart Highlight
         if (speedChart && gpxData.points[index]) {
             if (!speedChart.getActiveElements() || speedChart.getActiveElements().length === 0 || speedChart.getActiveElements()[0].index !== index) {
                 speedChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
+                speedChart.update(); // Update chart after setting active elements
             }
-            const speedOptions = speedChart.options;
-            speedOptions.plugins = speedOptions.plugins || {};
-            speedOptions.plugins.annotation = {
-                drawTime: 'afterDatasetsDraw',
-                annotations: {
-                    verticalLine: {
-                        type: 'line',
-                        scaleID: 'x',
-                        value: index,
-                        borderColor: 'rgba(100, 100, 100, 0.7)', // Grey color
-                        borderWidth: 1.5,
-                    }
-                }
-            };
-            speedChart.update();
         }
         // console.log("Highlighting point index:", index, "Lat:", point.lat, "Lon:", point.lon);
     }, 10); // Debounce time in ms (e.g., 10-50ms)
