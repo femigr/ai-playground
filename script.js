@@ -1,23 +1,6 @@
 // JavaScript for GPX Analyzer & Editor will go here
 console.log("script.js loaded");
 
-// Register Chart.js Annotation Plugin
-if (typeof Chart !== 'undefined') {
-    if (typeof ChartJsPluginAnnotation !== 'undefined') { // Check for v2+ style
-        Chart.register(ChartJsPluginAnnotation);
-        console.log("ChartJsPluginAnnotation (likely v2+) registered.");
-    } else if (typeof annotationPlugin !== 'undefined') { // New check for v3+ style (ESM import style)
-        Chart.register(annotationPlugin);
-        console.log("annotationPlugin (likely v3+) registered.");
-    } else if (typeof ChartAnnotation !== 'undefined') { // Fallback for older v1.x style
-        Chart.register(ChartAnnotation);
-        console.log("ChartAnnotation (likely v1.x) registered.");
-    } else {
-        console.error("Chart.js Annotation plugin object not found. Vertical lines may not work.");
-    }
-}
-
-
 // Global Variables
 let map;
 let altitudeChart;
@@ -317,12 +300,12 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                     // console.log('Altitude chart hover, index:', dataIndex);
                     updateHighlight(dataIndex);
                 }
-            },
-            plugins: { // Add initial empty annotation config
-                annotation: {
-                    annotations: {}
-                }
             }
+            // plugins: { // Add initial empty annotation config
+            //     annotation: {
+            //         annotations: {}
+            //     }
+            // }
         }
     });
 }
@@ -385,12 +368,12 @@ function createSpeedChart(gpxData) { // Renamed parameter
                     // console.log('Speed chart hover, index:', dataIndex);
                     updateHighlight(dataIndex);
                 }
-            },
-            plugins: { // Add initial empty annotation config
-                annotation: {
-                    annotations: {}
-                }
             }
+            // plugins: { // Add initial empty annotation config
+            //     annotation: {
+            //         annotations: {}
+            //     }
+            // }
         }
     });
 }
@@ -418,46 +401,16 @@ function updateHighlight(index) {
         if (altitudeChart && gpxData.points[index]) {
             if (!altitudeChart.getActiveElements() || altitudeChart.getActiveElements().length === 0 || altitudeChart.getActiveElements()[0].index !== index) {
                 altitudeChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
+                altitudeChart.update(); // Update chart after setting active elements
             }
-            // Ensure the plugin options structure exists
-            altitudeChart.options.plugins = altitudeChart.options.plugins || {};
-            altitudeChart.options.plugins.annotation = altitudeChart.options.plugins.annotation || {};
-            altitudeChart.options.plugins.annotation.annotations = altitudeChart.options.plugins.annotation.annotations || {};
-
-            // Define or update the verticalLine annotation
-            altitudeChart.options.plugins.annotation.annotations.verticalLine = {
-                type: 'line',
-                scaleID: 'x',
-                value: index,
-                borderColor: 'rgba(100, 100, 100, 0.7)',
-                borderWidth: 1.5,
-            };
-            // Ensure drawTime is set on the main annotation plugin config
-            altitudeChart.options.plugins.annotation.drawTime = 'afterDatasetsDraw';
-            altitudeChart.update();
         }
 
         // Speed Chart Highlight
         if (speedChart && gpxData.points[index]) {
             if (!speedChart.getActiveElements() || speedChart.getActiveElements().length === 0 || speedChart.getActiveElements()[0].index !== index) {
                 speedChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
+                speedChart.update(); // Update chart after setting active elements
             }
-            // Ensure the plugin options structure exists
-            speedChart.options.plugins = speedChart.options.plugins || {};
-            speedChart.options.plugins.annotation = speedChart.options.plugins.annotation || {};
-            speedChart.options.plugins.annotation.annotations = speedChart.options.plugins.annotation.annotations || {};
-
-            // Define or update the verticalLine annotation
-            speedChart.options.plugins.annotation.annotations.verticalLine = {
-                type: 'line',
-                scaleID: 'x',
-                value: index,
-                borderColor: 'rgba(100, 100, 100, 0.7)',
-                borderWidth: 1.5,
-            };
-            // Ensure drawTime is set on the main annotation plugin config
-            speedChart.options.plugins.annotation.drawTime = 'afterDatasetsDraw';
-            speedChart.update();
         }
         // console.log("Highlighting point index:", index, "Lat:", point.lat, "Lon:", point.lon);
     }, 10); // Debounce time in ms (e.g., 10-50ms)
