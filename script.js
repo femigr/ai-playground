@@ -12,6 +12,8 @@ if (window.chartjsPluginZoom) {
 // Global Variables
 let selectedRange = { start: null, end: null };
 let rangePolyline = null; // For map highlight of selected range
+let throttleTimeoutId = null;
+const THROTTLE_DELAY_MS = 150; // (e.g., 150ms)
 let map;
 let altitudeChart;
 let speedChart;
@@ -369,9 +371,34 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                             borderWidth: 1
                         },
                         mode: 'x',
+                        onZoom: function({chart}) {
+                            if (throttleTimeoutId) {
+                                clearTimeout(throttleTimeoutId);
+                            }
+
+                            throttleTimeoutId = setTimeout(() => {
+                                const { min, max } = chart.scales.x;
+                                const allLabels = chart.data.labels;
+
+                                let startIndex = Math.max(0, Math.floor(min));
+                                let endIndex = Math.min(allLabels.length - 1, Math.ceil(max));
+
+                                if (startIndex < 0) startIndex = 0;
+                                if (endIndex >= allLabels.length) endIndex = allLabels.length - 1;
+
+                                if (startIndex <= endIndex) {
+                                    console.log(`Throttled Update on ${chart.canvas.id}. Indices: ${startIndex} to ${endIndex}`);
+                                    highlightRangeOnMap(startIndex, endIndex);
+                                    calculateAndDisplayStats(gpxData, startIndex, endIndex);
+                                } else {
+                                    // console.log(`Throttled Update on ${chart.canvas.id} - invalid live range, no update.`);
+                                }
+                            }, THROTTLE_DELAY_MS);
+                        },
                         onZoomComplete: function({chart}) {
                             const { min, max } = chart.scales.x;
-                            console.log(`Zoom/Selection complete for ${chart.canvas.id}. Min index: ${min}, Max index: ${max}`);
+                            // console.log(`Zoom/Selection COMPLETE for ${chart.canvas.id}. Min index: ${min}, Max index: ${max}`);
+                            // The console log below is more specific to the outcome of processing.
 
                             const allLabels = chart.data.labels;
                             let startIndex = Math.max(0, Math.floor(min));
@@ -383,11 +410,11 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                             if (startIndex <= endIndex) {
                                 selectedRange.start = startIndex;
                                 selectedRange.end = endIndex;
-                                console.log(`Selected data indices: ${selectedRange.start} to ${selectedRange.end}`);
+                                console.log(`Zoom/Selection COMPLETE for ${chart.canvas.id}. Indices: ${selectedRange.start} to ${selectedRange.end}`);
                                 highlightRangeOnMap(selectedRange.start, selectedRange.end);
                                 calculateAndDisplayStats(gpxData, selectedRange.start, selectedRange.end);
                             } else {
-                                console.log("Selection resulted in invalid range (start > end). Resetting.");
+                                console.log(`Zoom/Selection COMPLETE for ${chart.canvas.id} resulted in invalid range. Resetting.`);
                                 selectedRange.start = null;
                                 selectedRange.end = null;
                                 highlightRangeOnMap(null, null); // Clear map highlight
@@ -478,9 +505,34 @@ function createSpeedChart(gpxData) { // Renamed parameter
                             borderWidth: 1
                         },
                         mode: 'x',
+                        onZoom: function({chart}) {
+                            if (throttleTimeoutId) {
+                                clearTimeout(throttleTimeoutId);
+                            }
+
+                            throttleTimeoutId = setTimeout(() => {
+                                const { min, max } = chart.scales.x;
+                                const allLabels = chart.data.labels;
+
+                                let startIndex = Math.max(0, Math.floor(min));
+                                let endIndex = Math.min(allLabels.length - 1, Math.ceil(max));
+
+                                if (startIndex < 0) startIndex = 0;
+                                if (endIndex >= allLabels.length) endIndex = allLabels.length - 1;
+
+                                if (startIndex <= endIndex) {
+                                    console.log(`Throttled Update on ${chart.canvas.id}. Indices: ${startIndex} to ${endIndex}`);
+                                    highlightRangeOnMap(startIndex, endIndex);
+                                    calculateAndDisplayStats(gpxData, startIndex, endIndex);
+                                } else {
+                                    // console.log(`Throttled Update on ${chart.canvas.id} - invalid live range, no update.`);
+                                }
+                            }, THROTTLE_DELAY_MS);
+                        },
                         onZoomComplete: function({chart}) {
                             const { min, max } = chart.scales.x;
-                            console.log(`Zoom/Selection complete for ${chart.canvas.id}. Min index: ${min}, Max index: ${max}`);
+                            // console.log(`Zoom/Selection COMPLETE for ${chart.canvas.id}. Min index: ${min}, Max index: ${max}`);
+                            // The console log below is more specific to the outcome of processing.
 
                             const allLabels = chart.data.labels;
                             let startIndex = Math.max(0, Math.floor(min));
@@ -492,11 +544,11 @@ function createSpeedChart(gpxData) { // Renamed parameter
                             if (startIndex <= endIndex) {
                                 selectedRange.start = startIndex;
                                 selectedRange.end = endIndex;
-                                console.log(`Selected data indices: ${selectedRange.start} to ${selectedRange.end}`);
+                                console.log(`Zoom/Selection COMPLETE for ${chart.canvas.id}. Indices: ${selectedRange.start} to ${selectedRange.end}`);
                                 highlightRangeOnMap(selectedRange.start, selectedRange.end);
                                 calculateAndDisplayStats(gpxData, selectedRange.start, selectedRange.end);
                             } else {
-                                console.log("Selection resulted in invalid range (start > end). Resetting.");
+                                console.log(`Zoom/Selection COMPLETE for ${chart.canvas.id} resulted in invalid range. Resetting.`);
                                 selectedRange.start = null;
                                 selectedRange.end = null;
                                 highlightRangeOnMap(null, null); // Clear map highlight
