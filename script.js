@@ -1,6 +1,15 @@
 // JavaScript for GPX Analyzer & Editor will go here
 console.log("script.js loaded");
 
+// Register chartjs-plugin-zoom
+// Assuming ChartZoom is exposed globally by the plugin script
+if (typeof ChartZoom !== 'undefined') {
+    Chart.register(ChartZoom);
+    console.log("chartjs-plugin-zoom registered.");
+} else {
+    console.warn("ChartZoom plugin not found. Zoom functionality may not work.");
+}
+
 // Global Variables
 let map;
 let altitudeChart;
@@ -8,6 +17,11 @@ let speedChart;
 let gpxData = { points: [], totalDistance: 0 };
 let trackHighlightMarker;
 let highlightDebounceTimeout; // For debouncing highlight updates
+
+// Global state for selected range and active chart
+let selectedRange = { min: null, max: null };
+let activeSelectionChart = null; // To track which chart initiated a selection ('altitude' or 'speed')
+let selectedTrackPolyline = null; // Holds the Leaflet layer for the highlighted track segment
 
 const gpxFileInput = document.getElementById('gpxFile');
 const gpxDataDisplay = document.getElementById('gpxData');
@@ -22,6 +36,9 @@ gpxFileInput.addEventListener('change', function(event) {
         reader.onload = function(e) {
             const fileContent = e.target.result;
             console.log("File content loaded, length:", fileContent.length);
+
+            // Reset selection state when a new file is loaded
+            resetChartSelectionAndZoom();
 
             try {
                 const gpx = new gpxParser();
@@ -339,13 +356,58 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                     updateHighlight(dataIndex);
                 }
             }
-            // plugins: { // Add initial empty annotation config
-            //     annotation: {
-            //         annotations: {}
-            //     }
-            // }
+            plugins: {
+                legend: {
+                    labels: {
+                        color: labelColor
+                    }
+                },
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                    },
+                    zoom: {
+                        drag: {
+                            enabled: true,
+                            modifierKey: 'shift', // Requires shift key to drag-to-zoom
+                            backgroundColor: 'rgba(75, 192, 192, 0.3)',
+                            borderColor: 'rgba(75, 192, 192, 0.8)',
+                        },
+                        mode: 'x',
+                        onZoomComplete: function({chart}) {
+                            const newMin = chart.scales.x.min;
+                            const newMax = chart.scales.x.max;
+
+                            selectedRange.min = newMin;
+                            selectedRange.max = newMax;
+                            activeSelectionChart = 'altitude';
+                            console.log('Altitude chart selection. Updated selectedRange:', selectedRange);
+
+                            if (speedChart && speedChart.scales && speedChart.scales.x) {
+                                // Check if zoom is already applied to prevent feedback loop if not using 'none'
+                                if (speedChart.scales.x.min !== newMin || speedChart.scales.x.max !== newMax) {
+                                    speedChart.zoomScale('x', {min: newMin, max: newMax}, 'none');
+                                }
+                            }
+                            updateMapForRange(selectedRange.min, selectedRange.max);
+                            if (gpxData && gpxData.points && selectedRange.min !== null && selectedRange.max !== null && selectedRange.min <= selectedRange.max) {
+                                const selectedPoints = gpxData.points.slice(selectedRange.min, selectedRange.max + 1);
+                                calculateAndDisplayStats(selectedPoints);
+                            }
+                        }
+                    }
+                }
+                // annotation: { // Add initial empty annotation config
+                //     annotations: {}
+                // }
+            }
         }
     });
+
+    if (altitudeChart && altitudeChart.canvas) {
+        altitudeChart.canvas.addEventListener('dblclick', resetChartSelectionAndZoom);
+    }
 }
 
 function createSpeedChart(gpxData) { // Renamed parameter
@@ -434,13 +496,119 @@ function createSpeedChart(gpxData) { // Renamed parameter
                     updateHighlight(dataIndex);
                 }
             }
-            // plugins: { // Add initial empty annotation config
-            //     annotation: {
-            //         annotations: {}
-            //     }
-            // }
+            plugins: {
+                legend: {
+                    labels: {
+                        color: labelColor
+                    }
+                },
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                    },
+                    zoom: {
+                        drag: {
+                            enabled: true,
+                            modifierKey: 'shift', // Requires shift key to drag-to-zoom
+                            backgroundColor: 'rgba(75, 192, 192, 0.3)',
+                            borderColor: 'rgba(75, 192, 192, 0.8)',
+                        },
+                        mode: 'x',
+                        onZoomComplete: function({chart}) {
+                            const newMin = chart.scales.x.min;
+                            const newMax = chart.scales.x.max;
+
+                            selectedRange.min = newMin;
+                            selectedRange.max = newMax;
+                            activeSelectionChart = 'speed';
+                            console.log('Speed chart selection. Updated selectedRange:', selectedRange);
+
+                            if (altitudeChart && altitudeChart.scales && altitudeChart.scales.x) {
+                                 // Check if zoom is already applied to prevent feedback loop
+                                if (altitudeChart.scales.x.min !== newMin || altitudeChart.scales.x.max !== newMax) {
+                                    altitudeChart.zoomScale('x', {min: newMin, max: newMax}, 'none');
+                                }
+                            if (gpxData && gpxData.points && selectedRange.min !== null && selectedRange.max !== null && selectedRange.min <= selectedRange.max) {
+                                const selectedPoints = gpxData.points.slice(selectedRange.min, selectedRange.max + 1);
+                                calculateAndDisplayStats(selectedPoints);
+                            }
+                        }
+                    }
+                }
+                // annotation: { // Add initial empty annotation config
+                //     annotations: {}
+                // }
+            }
         }
     });
+
+    if (speedChart && speedChart.canvas) {
+        speedChart.canvas.addEventListener('dblclick', resetChartSelectionAndZoom);
+    }
+}
+
+function resetChartSelectionAndZoom() {
+    selectedRange.min = null;
+    selectedRange.max = null;
+    activeSelectionChart = null;
+
+    if (altitudeChart) {
+        altitudeChart.resetZoom('none');
+    }
+    if (speedChart) {
+        speedChart.resetZoom('none');
+    }
+    console.log("Selection cleared and charts reset.");
+    updateMapForRange(null, null); // Clear map selection highlight
+    calculateAndDisplayStats(); // Recalculate for full track
+}
+
+function updateMapForRange(startIndex, endIndex) {
+    if (!map) return; // Make sure map is initialized
+
+    // Clear previous selection polyline
+    if (selectedTrackPolyline && map.hasLayer(selectedTrackPolyline)) {
+        map.removeLayer(selectedTrackPolyline);
+    }
+    selectedTrackPolyline = null;
+
+    // Validate range
+    if (startIndex === null || endIndex === null || startIndex < 0 || endIndex < startIndex || !gpxData.points || gpxData.points.length === 0) {
+        // If selection is cleared or invalid, ensure map view fits the whole track if it exists
+        if (gpxData.points && gpxData.points.length > 0) {
+            const allLatLngs = gpxData.points.map(p => [p.lat, p.lon]);
+            if (allLatLngs.length > 0) {
+                 // map.fitBounds(allLatLngs); // Optionally reset to full track view
+            }
+        }
+        return;
+    }
+
+    // Ensure indices are within bounds
+    const maxPointIndex = gpxData.points.length - 1;
+    const validStartIndex = Math.max(0, startIndex);
+    // For slice, endIndex needs to be one more than the last desired index.
+    // And ensure it doesn't exceed the array length.
+    const validEndIndex = Math.min(maxPointIndex, endIndex);
+
+    if (validStartIndex > validEndIndex) return; // Should not happen if logic is correct
+
+    const selectedPoints = gpxData.points.slice(validStartIndex, validEndIndex + 1);
+
+    if (selectedPoints.length > 0) {
+        const latLngs = selectedPoints.map(p => [p.lat, p.lon]);
+        selectedTrackPolyline = L.polyline(latLngs, {
+            color: 'red', // Distinctive color for selection
+            weight: 5,
+            opacity: 0.75
+        }).addTo(map);
+
+        // Optional: Fit map to the selected bounds
+        if (selectedTrackPolyline.getBounds().isValid()) {
+            map.fitBounds(selectedTrackPolyline.getBounds(), {padding: [20, 20]});
+        }
+    }
 }
 
 function updateHighlight(index) {
@@ -481,65 +649,78 @@ function updateHighlight(index) {
     }, 10); // Debounce time in ms (e.g., 10-50ms)
 }
 
-function calculateAndDisplayStats(gpxData) {
+function calculateAndDisplayStats(pointsSubset) {
     const statsContainer = document.getElementById('statsContainer');
     if (!statsContainer) {
         console.error("Stats container not found!");
         return;
     }
 
-    const totalDistanceMeters = gpxData.totalDistance; // Already in meters
+    const pointsToUse = (pointsSubset && pointsSubset.length > 0) ? pointsSubset : gpxData.points;
 
+    let totalDistanceMeters = 0;
     let totalTimeInSeconds = 0;
-    if (gpxData.points && gpxData.points.length > 1) {
-        const firstPointTime = gpxData.points[0].time.getTime();
-        const lastPointTime = gpxData.points[gpxData.points.length - 1].time.getTime();
-        totalTimeInSeconds = (lastPointTime - firstPointTime) / 1000;
-    }
-
     let calculatedAverageSpeedKmh = 0;
-    if (totalTimeInSeconds > 0) {
-        calculatedAverageSpeedKmh = (totalDistanceMeters / totalTimeInSeconds) * 3.6; // m/s to km/h
-    }
-
     let calculatedTotalAscent = 0;
-    if (gpxData.points) {
-        for (let i = 1; i < gpxData.points.length; i++) {
-            const prevPoint = gpxData.points[i-1];
-            const currentPoint = gpxData.points[i];
+    let calculatedMaxSpeedKmh = 0;
+
+    if (pointsToUse && pointsToUse.length > 0) {
+        if (pointsToUse.length > 1) {
+            // Calculate distance:
+            // If it's a subset, calculate from difference in distanceFromStart
+            // If it's the full set, gpxData.totalDistance can be used (or calculated like a subset)
+            if (pointsSubset && pointsSubset.length > 0 && pointsToUse.length < gpxData.points.length) { // It's a true subset
+                 totalDistanceMeters = pointsToUse[pointsToUse.length - 1].distanceFromStart - pointsToUse[0].distanceFromStart;
+            } else { // Full dataset or effectively full if subset matches gpxData.points
+                totalDistanceMeters = gpxData.totalDistance; // Use pre-calculated total for full track
+            }
+
+            const firstPointTime = pointsToUse[0].time.getTime();
+            const lastPointTime = pointsToUse[pointsToUse.length - 1].time.getTime();
+            totalTimeInSeconds = (lastPointTime - firstPointTime) / 1000;
+        } else { // Single point in selection
+            totalDistanceMeters = 0; // No distance for a single point
+            totalTimeInSeconds = 0;
+        }
+
+
+        if (totalTimeInSeconds > 0 && totalDistanceMeters > 0) { // Avg speed only if there's distance and time
+            calculatedAverageSpeedKmh = (totalDistanceMeters / totalTimeInSeconds) * 3.6; // m/s to km/h
+        }
+
+        for (let i = 1; i < pointsToUse.length; i++) {
+            const prevPoint = pointsToUse[i-1];
+            const currentPoint = pointsToUse[i];
             if (prevPoint.alt !== null && currentPoint.alt !== null && !isNaN(prevPoint.alt) && !isNaN(currentPoint.alt)) {
                 if (currentPoint.alt > prevPoint.alt) {
                     calculatedTotalAscent += currentPoint.alt - prevPoint.alt;
                 }
             }
         }
-    }
 
-    let calculatedMaxSpeedKmh = 0;
-    if (gpxData.points) {
-        gpxData.points.forEach(point => {
-            // Assuming point.speed is the smoothed speed in km/h
+        pointsToUse.forEach(point => {
             if (point.speed !== null && !isNaN(point.speed) && point.speed > calculatedMaxSpeedKmh) {
                 calculatedMaxSpeedKmh = point.speed;
             }
         });
-    }
+
+    } // else, all stats remain 0 or "N/A" will be handled by formatting
 
     // Format for display
-    // const distanceKm = (totalDistanceMeters / 1000).toFixed(2);
-    // const formattedTime = formatDuration(totalTimeInSeconds);
-    // const avgSpeedKmh = calculatedAverageSpeedKmh.toFixed(1);
-    // const totalAscentMetersFormatted = Math.round(calculatedTotalAscent);
-    // const maxSpeedKmh = calculatedMaxSpeedKmh.toFixed(1);
+    const distanceKmDisplay = (pointsToUse && pointsToUse.length > 0) ? (totalDistanceMeters / 1000).toFixed(2) : "N/A";
+    const formattedTimeDisplay = (pointsToUse && pointsToUse.length > 1) ? formatDuration(totalTimeInSeconds) : "N/A";
+    const avgSpeedKmhDisplay = (calculatedAverageSpeedKmh > 0) ? calculatedAverageSpeedKmh.toFixed(1) : "N/A";
+    const totalAscentMetersFormattedDisplay = (pointsToUse && pointsToUse.length > 0) ? Math.round(calculatedTotalAscent) : "N/A";
+    const maxSpeedKmhDisplay = (pointsToUse && pointsToUse.length > 0 && calculatedMaxSpeedKmh > 0) ? calculatedMaxSpeedKmh.toFixed(1) : "N/A";
+
 
     const statsData = [
-        { label: "Dist:", value: `${(totalDistanceMeters / 1000).toFixed(2)} km` },
-        { label: "Time:", value: formatDuration(totalTimeInSeconds) },
-        { label: "Avg Spd:", value: `${calculatedAverageSpeedKmh.toFixed(1)} km/h` },
-        { label: "Asc:", value: `${Math.round(calculatedTotalAscent)} m` },
-        { label: "Max Spd:", value: `${calculatedMaxSpeedKmh.toFixed(1)} km/h` }
+        { label: "Dist:", value: `${distanceKmDisplay} km` },
+        { label: "Time:", value: formattedTimeDisplay },
+        { label: "Avg Spd:", value: `${avgSpeedKmhDisplay} km/h` },
+        { label: "Asc:", value: `${totalAscentMetersFormattedDisplay} m` },
+        { label: "Max Spd:", value: `${maxSpeedKmhDisplay} km/h` }
     ];
-
     // Get the statsInnerContainer, which is now expected to be in index.html
     const statsInnerContainer = document.getElementById('statsInnerContainer');
     if (!statsInnerContainer) {
