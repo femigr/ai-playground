@@ -355,14 +355,14 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                     // console.log('Altitude chart hover, index:', dataIndex);
                     updateHighlight(dataIndex);
                 }
-            }
-            plugins: {
+            }, // Ensure this comma is here
+            plugins: { // Single plugins object
                 legend: {
                     labels: {
                         color: labelColor
                     }
                 },
-                zoom: {
+                zoom: { // Zoom plugin options
                     pan: {
                         enabled: true,
                         mode: 'x',
@@ -370,7 +370,7 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                     zoom: {
                         drag: {
                             enabled: true,
-                            modifierKey: 'shift', // Requires shift key to drag-to-zoom
+                            modifierKey: 'shift',
                             backgroundColor: 'rgba(75, 192, 192, 0.3)',
                             borderColor: 'rgba(75, 192, 192, 0.8)',
                         },
@@ -385,7 +385,6 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                             console.log('Altitude chart selection. Updated selectedRange:', selectedRange);
 
                             if (speedChart && speedChart.scales && speedChart.scales.x) {
-                                // Check if zoom is already applied to prevent feedback loop if not using 'none'
                                 if (speedChart.scales.x.min !== newMin || speedChart.scales.x.max !== newMax) {
                                     speedChart.zoomScale('x', {min: newMin, max: newMax}, 'none');
                                 }
@@ -398,9 +397,7 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                         }
                     }
                 }
-                // annotation: { // Add initial empty annotation config
-                //     annotations: {}
-                // }
+                // annotation: { annotations: {} } // If you had annotations
             }
         }
     });
@@ -495,14 +492,14 @@ function createSpeedChart(gpxData) { // Renamed parameter
                     // console.log('Speed chart hover, index:', dataIndex);
                     updateHighlight(dataIndex);
                 }
-            }
-            plugins: {
+            }, // Ensure this comma is here
+            plugins: { // Single plugins object
                 legend: {
                     labels: {
                         color: labelColor
                     }
                 },
-                zoom: {
+                zoom: { // Zoom plugin options
                     pan: {
                         enabled: true,
                         mode: 'x',
@@ -510,7 +507,7 @@ function createSpeedChart(gpxData) { // Renamed parameter
                     zoom: {
                         drag: {
                             enabled: true,
-                            modifierKey: 'shift', // Requires shift key to drag-to-zoom
+                            modifierKey: 'shift',
                             backgroundColor: 'rgba(75, 192, 192, 0.3)',
                             borderColor: 'rgba(75, 192, 192, 0.8)',
                         },
@@ -525,10 +522,12 @@ function createSpeedChart(gpxData) { // Renamed parameter
                             console.log('Speed chart selection. Updated selectedRange:', selectedRange);
 
                             if (altitudeChart && altitudeChart.scales && altitudeChart.scales.x) {
-                                 // Check if zoom is already applied to prevent feedback loop
                                 if (altitudeChart.scales.x.min !== newMin || altitudeChart.scales.x.max !== newMax) {
                                     altitudeChart.zoomScale('x', {min: newMin, max: newMax}, 'none');
                                 }
+                            }
+                            // This call was missing for speed chart, adding it for consistency
+                            updateMapForRange(selectedRange.min, selectedRange.max);
                             if (gpxData && gpxData.points && selectedRange.min !== null && selectedRange.max !== null && selectedRange.min <= selectedRange.max) {
                                 const selectedPoints = gpxData.points.slice(selectedRange.min, selectedRange.max + 1);
                                 calculateAndDisplayStats(selectedPoints);
@@ -536,9 +535,7 @@ function createSpeedChart(gpxData) { // Renamed parameter
                         }
                     }
                 }
-                // annotation: { // Add initial empty annotation config
-                //     annotations: {}
-                // }
+                // annotation: { annotations: {} } // If you had annotations
             }
         }
     });
