@@ -3,7 +3,7 @@
 :root {
   --background-color: #eef1f5; /* a very light, slightly cool gray/blue */
   --text-color: #2c3e50; /* dark slate blue, for better readability than pure black */
-  --header-color: #e74c3c; /* a vibrant red-orange, road-bike accent */
+  --header-color: #1a1a1a; /* near-black for light theme header */
   --gpx-data-bg: #ffffff; /* pure white for card-like elements */
   --gpx-data-border: transparent; /* remove border, rely on shadow */
   --gpx-data-shadow: rgba(44, 62, 80, 0.15); /* a softer, more spread out shadow */
@@ -27,12 +27,14 @@
   --error-text-color: #c0392b; /* stronger red for errors */
   --error-bg-color: #fceded; /* lighter red background for errors */
   --error-border-color: #f5c6cb;
+  --header-bar-bg-light: #ffffff;
+  --header-bar-bg: var(--header-bar-bg-light); /* General variable */
 }
 
 [data-theme="dark"] {
   --background-color: #1a1d24; /* a very dark, slightly desaturated blue/charcoal */
   --text-color: #e1e5ea; /* a light, slightly cool gray for text */
-  --header-color: #e74c3c; /* keep the vibrant red-orange accent */
+  --header-color: #f0f0f0; /* near-white for dark theme header */
   --gpx-data-bg: #232730; /* a dark gray, slightly lighter than the main background */
   --gpx-data-border: transparent;
   --gpx-data-shadow: rgba(0, 0, 0, 0.3); /* a more pronounced shadow for dark mode */
@@ -56,10 +58,30 @@
   --error-text-color: #f89ea1; /* lighter, softer red for error text */
   --error-bg-color: #4a2e30; /* dark, desaturated red for error background */
   --error-border-color: #a35e61;
+  --header-bar-bg-dark: #232730;
+  --header-bar-bg: var(--header-bar-bg-dark); /* Override for dark theme */
+}
+
+/* Page Header */
+#pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 25px; /* Adjusted padding */
+    background-color: var(--header-bar-bg);
+    border-bottom: 1px solid var(--chart-border-color); /* Use existing chart border color for separator */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Subtle shadow */
+    position: sticky; /* Make it sticky */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001; /* Ensure it's above other content like map/stats bar */
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth theme change */
 }
 
 /* Apply variables */
 body {
+    padding-top: 70px; /* Add padding to body to account for sticky header height */
     font-family: 'Montserrat', sans-serif;
     margin: 20px;
     background-color: var(--background-color);
@@ -73,16 +95,23 @@ h1 {
     font-family: 'Raleway', sans-serif;
     font-weight: 800;
     letter-spacing: 1px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    /* text-shadow removed for light theme, conditionally added for dark */
     color: var(--header-color);
-    text-align: center; /* Center the main title */
-    margin-bottom: 30px;
+    /* text-align: center; */ /* No longer needed with flex */
+    margin: 0; /* Remove default margins */
+    flex-grow: 1; /* Allow title to take up available space */
+    /* font-size: 1.8em; /* Optionally adjust font size */
+}
+
+[data-theme="dark"] h1 {
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* Subtle dark shadow for white text on dark bg */
 }
 
 #gpxFile {
-    display: block; /* Make the file input take its own line */
-    margin: 0 auto 20px auto; /* Center the file input */
-    padding: 12px;
+    /* display: block; */ /* REMOVE this */
+    /* margin: 0 auto 20px auto; */ /* REMOVE this */
+    margin-left: 15px; /* Add some space */
+    padding: 12px; /* This was already there, ensure it's correct */
     background-color: var(--input-bg-color);
     color: var(--input-text-color);
     border: 1px solid var(--input-border-color);
@@ -212,13 +241,12 @@ h1 {
 }
 
 .theme-selector {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 5px;
-  background-color: var(--background-color); /* So it blends slightly with page bg */
-  border-radius: 5px;
-  z-index: 1001;
+  /* position: absolute; top: 10px; right: 10px; */ /* REMOVE these */
+  padding: 5px; /* Keep or adjust */
+  /* background-color: var(--background-color); */ /* No longer needed, header has own BG */
+  border-radius: 5px; /* Keep or adjust */
+  /* z-index: 1001; */ /* REMOVE this, header has z-index */
+  margin-left: 15px; /* Add some space */
 }
 .theme-selector label {
   margin-right: 5px;

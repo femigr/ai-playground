@@ -9,16 +9,18 @@
     <script src="https://unpkg.com/gpxparser@3.0.8/dist/GPXParser.min.js"></script>
 </head>
 <body>
-    <h1>GPX Analyzer & Editor</h1>
-    <div class="theme-selector">
-        <label for="theme">Theme:</label>
-        <select id="theme" name="theme">
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-        </select>
+    <div id="pageHeader">
+        <h1>GPX Analyzer & Editor</h1>
+        <div class="theme-selector">
+            <label for="theme">Theme:</label>
+            <select id="theme" name="theme">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+        <input type="file" id="gpxFile" accept=".gpx">
     </div>
-    <input type="file" id="gpxFile" accept=".gpx">
     <div id="map"></div>
     <div id="altitudeChartContainer">
         <canvas id="altitudeChart"></canvas>
