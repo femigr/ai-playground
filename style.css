@@ -29,6 +29,7 @@
   --error-border-color: #f5c6cb;
   --header-bar-bg-light: #ffffff;
   --header-bar-bg: var(--header-bar-bg-light); /* General variable */
+  --selected-range-color: #FF0000; /* Red for light theme */
 }
 
 [data-theme="dark"] {
@@ -60,6 +61,7 @@
   --error-border-color: #a35e61;
   --header-bar-bg-dark: #232730;
   --header-bar-bg: var(--header-bar-bg-dark); /* Override for dark theme */
+  --selected-range-color: #FFA500; /* Orange for dark theme */
 }
 
 /* Page Header */

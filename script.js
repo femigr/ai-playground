@@ -2,11 +2,13 @@
 console.log("script.js loaded");
 
 // Global Variables
+let selectedRange = { startDistance: null, endDistance: null, startIndex: -1, endIndex: -1 };
 let map;
 let altitudeChart;
 let speedChart;
 let gpxData = { points: [], totalDistance: 0 };
 let trackHighlightMarker;
+let rangeHighlightPolyline = null;
 let highlightDebounceTimeout; // For debouncing highlight updates
 
 const gpxFileInput = document.getElementById('gpxFile');
@@ -326,7 +328,37 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                     labels: {
                         color: labelColor
                     }
+                },
+                zoom: {
+                    pan: {
+                        enabled: false, // Panning can be confusing with selection
+                    },
+                    zoom: {
+                        drag: {
+                            enabled: true,
+                            backgroundColor: 'rgba(100,150,255,0.3)', // Example color
+                            borderColor: 'rgba(100,150,255,0.7)',
+                            borderWidth: 1,
+                            mode: 'x',
+                            onZoomComplete: function({chart}) {
+                                const xAxis = chart.scales.x;
+                                selectedRange.startDistance = xAxis.min;
+                                selectedRange.endDistance = xAxis.max;
+                                console.log('Altitude Chart - Zoom complete. Selected distance range:', selectedRange.startDistance, 'to', selectedRange.endDistance);
+                                // TODO: Convert distances to indices and trigger updates
+                                // For now, just log. We'll implement index conversion and updates in the next steps.
+                                // Also, need to synchronize this selection with the speed chart if one chart is zoomed.
+                                if (speedChart && speedChart.scales.x.min !== xAxis.min && speedChart.scales.x.max !== xAxis.max) {
+                                    speedChart.zoomScale('x', {min: xAxis.min, max: xAxis.max}, 'default');
+                                }
+                                // After zoom, recalculate stats for the selected range
+                                updateStatsForRange();
+                            }
+                        },
+                        mode: 'x', // Zoom only on x-axis
+                    }
                 }
+                // annotation: { annotations: {} } // Keep if you plan to use it later
             },
             interaction: {
                 mode: 'index',
@@ -346,6 +378,17 @@ function createAltitudeChart(gpxData) { // Renamed parameter
             // }
         }
     });
+
+    ctx.canvas.ondblclick = () => {
+        altitudeChart.resetZoom();
+        selectedRange = { startDistance: null, endDistance: null, startIndex: -1, endIndex: -1 };
+        console.log('Altitude chart zoom reset.');
+        if (speedChart) {
+            speedChart.resetZoom();
+        }
+        // After zoom reset, recalculate stats for the full range
+        updateStatsForRange();
+    };
 }
 
 function createSpeedChart(gpxData) { // Renamed parameter
@@ -421,7 +464,35 @@ function createSpeedChart(gpxData) { // Renamed parameter
                     labels: {
                         color: labelColor
                     }
+                },
+                zoom: {
+                    pan: {
+                        enabled: false,
+                    },
+                    zoom: {
+                        drag: {
+                            enabled: true,
+                            backgroundColor: 'rgba(100,150,255,0.3)',
+                            borderColor: 'rgba(100,150,255,0.7)',
+                            borderWidth: 1,
+                            mode: 'x',
+                            onZoomComplete: function({chart}) {
+                                const xAxis = chart.scales.x;
+                                selectedRange.startDistance = xAxis.min;
+                                selectedRange.endDistance = xAxis.max;
+                                console.log('Speed Chart - Zoom complete. Selected distance range:', selectedRange.startDistance, 'to', selectedRange.endDistance);
+                                // TODO: Convert distances to indices and trigger updates
+                                if (altitudeChart && altitudeChart.scales.x.min !== xAxis.min && altitudeChart.scales.x.max !== xAxis.max) {
+                                    altitudeChart.zoomScale('x', {min: xAxis.min, max: xAxis.max}, 'default');
+                                }
+                                // After zoom, recalculate stats for the selected range
+                                updateStatsForRange();
+                            }
+                        },
+                        mode: 'x',
+                    }
                 }
+                // annotation: { annotations: {} } // Keep if you plan to use it later
             },
             interaction: {
                 mode: 'index',
@@ -441,6 +512,17 @@ function createSpeedChart(gpxData) { // Renamed parameter
             // }
         }
     });
+
+    ctx.canvas.ondblclick = () => {
+        speedChart.resetZoom();
+        selectedRange = { startDistance: null, endDistance: null, startIndex: -1, endIndex: -1 };
+        console.log('Speed chart zoom reset.');
+        if (altitudeChart) {
+            altitudeChart.resetZoom();
+        }
+        // After zoom reset, recalculate stats for the full range
+        updateStatsForRange();
+    };
 }
 
 function updateHighlight(index) {
@@ -448,65 +530,190 @@ function updateHighlight(index) {
     clearTimeout(highlightDebounceTimeout);
     highlightDebounceTimeout = setTimeout(() => {
         if (!gpxData || !gpxData.points || index < 0 || index >= gpxData.points.length || !gpxData.points[index]) {
-            // console.warn("Invalid index or data for highlight:", index);
             return;
         }
         const point = gpxData.points[index];
 
-        // Map Highlight
+        // Map Highlight for single point (only if no range is selected)
         if (map && trackHighlightMarker) {
-            trackHighlightMarker.setLatLng([point.lat, point.lon]);
-            if (!map.hasLayer(trackHighlightMarker)) {
-                trackHighlightMarker.addTo(map);
+            if (rangeHighlightPolyline && map.hasLayer(rangeHighlightPolyline)) {
+                // A range is selected and visible, hide the single point marker
+                if (map.hasLayer(trackHighlightMarker)) {
+                    map.removeLayer(trackHighlightMarker);
+                }
+            } else {
+                // No range selected, or range highlight is not on map; show/update single point marker
+                trackHighlightMarker.setLatLng([point.lat, point.lon]);
+                if (!map.hasLayer(trackHighlightMarker)) {
+                    trackHighlightMarker.addTo(map);
+                }
             }
-            // Optional: Make marker more prominent, e.g., trackHighlightMarker.setOpacity(1);
         }
 
         // Altitude Chart Highlight
-        if (altitudeChart && gpxData.points[index]) {
-            if (!altitudeChart.getActiveElements() || altitudeChart.getActiveElements().length === 0 || altitudeChart.getActiveElements()[0].index !== index) {
-                altitudeChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
-                altitudeChart.update(); // Update chart after setting active elements
+        if (altitudeChart) {
+            const isZoomed = altitudeChart.scales.x.min !== undefined && altitudeChart.scales.x.max !== undefined &&
+                             gpxData.points.length > 0 && // ensure points exist before accessing them
+                             (altitudeChart.scales.x.min !== gpxData.points[0].distanceFromStart ||
+                              altitudeChart.scales.x.max !== gpxData.points[gpxData.points.length - 1].distanceFromStart);
+
+            let currentIndexIsVisible = true;
+            if (isZoomed) {
+                if (point.distanceFromStart < altitudeChart.scales.x.min || point.distanceFromStart > altitudeChart.scales.x.max) {
+                    currentIndexIsVisible = false;
+                }
+            }
+
+            if (currentIndexIsVisible) {
+                if (!altitudeChart.getActiveElements() || altitudeChart.getActiveElements().length === 0 || altitudeChart.getActiveElements()[0].index !== index) {
+                    altitudeChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
+                    altitudeChart.update('none');
+                }
+            } else {
+                 altitudeChart.setActiveElements([], {x:0,y:0});
+                 altitudeChart.update('none');
             }
         }
 
-        // Speed Chart Highlight
-        if (speedChart && gpxData.points[index]) {
-            if (!speedChart.getActiveElements() || speedChart.getActiveElements().length === 0 || speedChart.getActiveElements()[0].index !== index) {
-                speedChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
-                speedChart.update(); // Update chart after setting active elements
+        // Speed Chart Highlight (similar logic for visibility in zoom)
+        if (speedChart) {
+            const isZoomed = speedChart.scales.x.min !== undefined && speedChart.scales.x.max !== undefined &&
+                             gpxData.points.length > 0 && // ensure points exist
+                             (speedChart.scales.x.min !== gpxData.points[0].distanceFromStart ||
+                              speedChart.scales.x.max !== gpxData.points[gpxData.points.length - 1].distanceFromStart);
+
+            let currentIndexIsVisible = true;
+            if (isZoomed) {
+                 if (point.distanceFromStart < speedChart.scales.x.min || point.distanceFromStart > speedChart.scales.x.max) {
+                    currentIndexIsVisible = false;
+                }
+            }
+
+            if (currentIndexIsVisible) {
+                if (!speedChart.getActiveElements() || speedChart.getActiveElements().length === 0 || speedChart.getActiveElements()[0].index !== index) {
+                    speedChart.setActiveElements([{ datasetIndex: 0, index: index }], { x:0, y:0 });
+                    speedChart.update('none');
+                }
+            } else {
+                speedChart.setActiveElements([], {x:0,y:0});
+                speedChart.update('none');
             }
         }
-        // console.log("Highlighting point index:", index, "Lat:", point.lat, "Lon:", point.lon);
-    }, 10); // Debounce time in ms (e.g., 10-50ms)
+    }, 10);
 }
 
-function calculateAndDisplayStats(gpxData) {
+function updateMapHighlightForRange() {
+    if (!map) return; // Make sure map is initialized
+
+    // Remove existing highlight polyline if any
+    if (rangeHighlightPolyline) {
+        map.removeLayer(rangeHighlightPolyline);
+        rangeHighlightPolyline = null;
+    }
+
+    // Check if a valid range is selected
+    if (selectedRange && selectedRange.startIndex !== -1 && selectedRange.endIndex !== -1 && selectedRange.startIndex < selectedRange.endIndex) {
+        const pointsToHighlight = gpxData.points.slice(selectedRange.startIndex, selectedRange.endIndex + 1);
+        if (pointsToHighlight.length > 1) {
+            const latLngs = pointsToHighlight.map(p => [p.lat, p.lon]);
+
+            // Get highlight color from CSS variable or fallback
+            const highlightColor = getComputedStyle(document.documentElement).getPropertyValue('--selected-range-color').trim() || 'red'; // Example fallback
+
+            rangeHighlightPolyline = L.polyline(latLngs, {
+                color: highlightColor,
+                weight: 5, // Make it thicker than the main track
+                opacity: 0.75
+            }).addTo(map);
+        }
+    }
+}
+
+function updateStatsForRange() {
+    console.log('Updating stats for range:', selectedRange);
+    // Later, this will call calculateAndDisplayStats with appropriate indices
+    // For now, if a range is selected, convert distances to indices
+    if (selectedRange.startDistance !== null && selectedRange.endDistance !== null) {
+        selectedRange.startIndex = findClosestPointIndexByDistance(selectedRange.startDistance);
+        selectedRange.endIndex = findClosestPointIndexByDistance(selectedRange.endDistance);
+        console.log('Converted to indices:', selectedRange.startIndex, 'to', selectedRange.endIndex);
+    } else {
+        selectedRange.startIndex = -1;
+        selectedRange.endIndex = -1;
+    }
+    updateMapHighlightForRange(); // Update map highlight based on new range
+    // Call the original stats function, which needs to be modified next
+    calculateAndDisplayStats(gpxData, selectedRange.startIndex, selectedRange.endIndex);
+}
+
+function findClosestPointIndexByDistance(distance) {
+    if (!gpxData || !gpxData.points || gpxData.points.length === 0) return -1;
+    let closestIndex = -1;
+    let minDiff = Infinity;
+    gpxData.points.forEach((point, index) => {
+        const diff = Math.abs(point.distanceFromStart - distance);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closestIndex = index;
+        }
+    });
+    return closestIndex;
+}
+
+function calculateAndDisplayStats(currentGpxData, startIndex = -1, endIndex = -1) {
     const statsContainer = document.getElementById('statsContainer');
     if (!statsContainer) {
         console.error("Stats container not found!");
         return;
     }
 
-    const totalDistanceMeters = gpxData.totalDistance; // Already in meters
+    let pointsToAnalyze = currentGpxData.points;
+    if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex && startIndex >= 0 && endIndex < currentGpxData.points.length) {
+        pointsToAnalyze = currentGpxData.points.slice(startIndex, endIndex + 1);
+    }
+
+    if (!pointsToAnalyze || pointsToAnalyze.length === 0) {
+        // Clear stats or show "N/A" if no points in range
+        const statsInnerContainer = document.getElementById('statsInnerContainer');
+        if (statsInnerContainer) statsInnerContainer.innerHTML = '<p>No data for selected range.</p>';
+        return;
+    }
+
+    let totalDistanceMeters;
+    if (startIndex !== -1 && endIndex !== -1 && pointsToAnalyze.length > 0 && endIndex > startIndex) { // ensure endIndex is greater
+        totalDistanceMeters = pointsToAnalyze[pointsToAnalyze.length - 1].distanceFromStart - pointsToAnalyze[0].distanceFromStart;
+    } else {
+        totalDistanceMeters = currentGpxData.totalDistance; // Full distance if no valid range or single point
+        // If it's a single point selection (startIndex === endIndex), distance is 0
+        if (startIndex !== -1 && startIndex === endIndex) totalDistanceMeters = 0;
+    }
+
 
     let totalTimeInSeconds = 0;
-    if (gpxData.points && gpxData.points.length > 1) {
-        const firstPointTime = gpxData.points[0].time.getTime();
-        const lastPointTime = gpxData.points[gpxData.points.length - 1].time.getTime();
+    if (pointsToAnalyze.length > 1) {
+        const firstPointTime = pointsToAnalyze[0].time.getTime();
+        const lastPointTime = pointsToAnalyze[pointsToAnalyze.length - 1].time.getTime();
         totalTimeInSeconds = (lastPointTime - firstPointTime) / 1000;
+    } else if (pointsToAnalyze.length === 1) {
+        totalTimeInSeconds = 0; // Single point, duration is 0
     }
+
 
     let calculatedAverageSpeedKmh = 0;
-    if (totalTimeInSeconds > 0) {
-        calculatedAverageSpeedKmh = (totalDistanceMeters / totalTimeInSeconds) * 3.6; // m/s to km/h
+    if (totalTimeInSeconds > 0 && totalDistanceMeters > 0) {
+        calculatedAverageSpeedKmh = (totalDistanceMeters / totalTimeInSeconds) * 3.6;
+    } else if (pointsToAnalyze.length === 1) {
+        // For a single point, average speed is its own speed.
+        calculatedAverageSpeedKmh = pointsToAnalyze[0].speed || 0;
     }
 
+
     let calculatedTotalAscent = 0;
-    if (gpxData.points) {
-        for (let i = 1; i < gpxData.points.length; i++) {
-            const prevPoint = gpxData.points[i-1];
-            const currentPoint = gpxData.points[i];
+    // Ascent calculation needs at least two points.
+    if (pointsToAnalyze.length > 1) {
+        for (let i = 1; i < pointsToAnalyze.length; i++) {
+            const prevPoint = pointsToAnalyze[i-1];
+            const currentPoint = pointsToAnalyze[i];
             if (prevPoint.alt !== null && currentPoint.alt !== null && !isNaN(prevPoint.alt) && !isNaN(currentPoint.alt)) {
                 if (currentPoint.alt > prevPoint.alt) {
                     calculatedTotalAscent += currentPoint.alt - prevPoint.alt;
@@ -515,15 +722,13 @@ function calculateAndDisplayStats(gpxData) {
         }
     }
 
+
     let calculatedMaxSpeedKmh = 0;
-    if (gpxData.points) {
-        gpxData.points.forEach(point => {
-            // Assuming point.speed is the smoothed speed in km/h
-            if (point.speed !== null && !isNaN(point.speed) && point.speed > calculatedMaxSpeedKmh) {
-                calculatedMaxSpeedKmh = point.speed;
-            }
-        });
-    }
+    pointsToAnalyze.forEach(point => {
+        if (point.speed !== null && !isNaN(point.speed) && point.speed > calculatedMaxSpeedKmh) {
+            calculatedMaxSpeedKmh = point.speed;
+        }
+    });
 
     // Format for display
     // const distanceKm = (totalDistanceMeters / 1000).toFixed(2);
@@ -574,14 +779,14 @@ function applyTheme(theme) {
 
     // Recreate charts if they exist to apply new theme colors
     // Ensure gpxData is available and populated
-    if (gpxData && gpxData.points && gpxData.points.length > 0) {
+    if (currentGpxData && currentGpxData.points && currentGpxData.points.length > 0) {
         if (altitudeChart) {
             // altitudeChart.destroy(); // Already destroyed in createAltitudeChart
-            createAltitudeChart(gpxData);
+            createAltitudeChart(currentGpxData);
         }
         if (speedChart) {
             // speedChart.destroy(); // Already destroyed in createSpeedChart
-            createSpeedChart(gpxData);
+            createSpeedChart(currentGpxData);
         }
     }
 }
