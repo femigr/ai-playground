@@ -2,21 +2,17 @@
 console.log("script.js loaded");
 
 // Register Chart.js plugins here
-// if (window.chartjsPluginZoom) {
-//     Chart.register(window.chartjsPluginZoom);
-//     console.log("chartjs-plugin-zoom registered.");
-// } else {
-//     console.error("chartjs-plugin-zoom not found. Ensure it's loaded before script.js");
-// }
-if (window.ChartAnnotation) {
-    Chart.register(window.ChartAnnotation);
-    console.log("chartjs-plugin-annotation registered.");
-} else {
-    console.error("chartjs-plugin-annotation not found. Ensure it's loaded before script.js");
-}
+// (No plugins are currently registered)
 
 
 // Global Variables
+// Note: resetSelectionBtn related code will be handled by delegation to statsContainer
+const DEFAULT_ALTITUDE_COLOR = 'rgb(75, 192, 192)';
+const DEFAULT_SPEED_COLOR = 'rgb(255, 99, 132)';
+const SELECTED_SEGMENT_COLOR = 'rgb(255, 0, 0)'; // Red for selected segment
+const DEFAULT_BORDER_WIDTH = 2; // Default line thickness
+const SELECTED_BORDER_WIDTH = 4; // Selected line thickness
+
 let selectedRange = { start: null, end: null };
 let rangePolyline = null; // For map highlight of selected range
 let throttleTimeoutId = null;
@@ -176,39 +172,71 @@ gpxFileInput.addEventListener('change', function(event) {
     }
 });
 
-const resetSelectionBtn = document.getElementById('resetSelectionBtn');
-if(resetSelectionBtn) {
-    resetSelectionBtn.addEventListener('click', function() {
-        selectedRange.start = null;
-        selectedRange.end = null;
+// const resetSelectionBtn = document.getElementById('resetSelectionBtn'); // This direct listener is removed
+// if(resetSelectionBtn) { // This direct listener is removed
+    // resetSelectionBtn.addEventListener('click', function() { // This direct listener is removed
+        // selectedRange.start = null; // This direct listener is removed
+        // selectedRange.end = null; // This direct listener is removed
+// This direct listener is removed
+        // if (altitudeChart) updateChartLineStyling(altitudeChart, null); // This direct listener is removed
+        // if (speedChart) updateChartLineStyling(speedChart, null); // This direct listener is removed
+// This direct listener is removed
+        // highlightRangeOnMap(null, null); // Clears the red polyline // This direct listener is removed
+// This direct listener is removed
+        // if (gpxData && gpxData.points && gpxData.points.length > 0) { // This direct listener is removed
+            // calculateAndDisplayStats(gpxData); // This direct listener is removed
+        // } else { // This direct listener is removed
+            // const statsContainer = document.getElementById('statsContainer'); // This direct listener is removed
+            // if (statsContainer) { // This direct listener is removed
+                // statsContainer.innerHTML = '<div id="statsInnerContainer"></div>'; // This direct listener is removed
+            // } // This direct listener is removed
+        // } // This direct listener is removed
+// This direct listener is removed
+        // updateHighlight(null); // Hides map marker & clears chart point highlights // This direct listener is removed
+// This direct listener is removed
+        // isDragging = false; // This direct listener is removed
+        // dragStartIndex = null; // This direct listener is removed
+        // dragCurrentIndex = null; // This direct listener is removed
+        // currentDraggingChart = null; // This direct listener is removed
+// This direct listener is removed
+        // console.log("Selection has been reset."); // This direct listener is removed
+    // }); // This direct listener is removed
+// } // This direct listener is removed
 
-        if (altitudeChart) {
-            updateSelectionAnnotation(altitudeChart, null, null);
-        }
-        if (speedChart) {
-            updateSelectionAnnotation(speedChart, null, null);
-        }
+const statsContainerForEvent = document.getElementById('statsContainer');
+if (statsContainerForEvent && !statsContainerForEvent._hasResetListener) { // Use a flag to ensure it's added only once
+    statsContainerForEvent.addEventListener('click', function(event) {
+        if (event.target && event.target.id === 'resetSelectionBtn') {
+            console.log("Reset Selection button clicked (delegated).");
+            selectedRange.start = null;
+            selectedRange.end = null;
 
-        highlightRangeOnMap(null, null); // Clears the red polyline
+            if (altitudeChart) updateChartLineStyling(altitudeChart, null);
+            if (speedChart) updateChartLineStyling(speedChart, null);
 
-        if (gpxData && gpxData.points && gpxData.points.length > 0) {
-            calculateAndDisplayStats(gpxData);
-        } else {
-            const statsContainer = document.getElementById('statsContainer');
-            if (statsContainer) {
-                statsContainer.innerHTML = '<div id="statsInnerContainer"></div>';
+            highlightRangeOnMap(null, null);
+            updateHighlight(null); // Hide map marker
+
+            // Reset drag state variables
+            isDragging = false;
+            dragStartIndex = null;
+            dragCurrentIndex = null;
+            currentDraggingChart = null;
+
+            // Recalculate stats for the entire track.
+            // This will also re-render the button within statsInnerContainer.
+            if (gpxData && gpxData.points && gpxData.points.length > 0) {
+                calculateAndDisplayStats(gpxData);
+            } else {
+                // If no data, clear stats (which also removes button temporarily)
+                const statsContainerElem = document.getElementById('statsContainer');
+                if (statsContainerElem) {
+                    statsContainerElem.innerHTML = '<div id="statsInnerContainer"></div>';
+                }
             }
         }
-
-        updateHighlight(null); // Hides map marker & clears chart point highlights
-
-        isDragging = false;
-        dragStartIndex = null;
-        dragCurrentIndex = null;
-        currentDraggingChart = null;
-
-        console.log("Selection has been reset.");
     });
+    statsContainerForEvent._hasResetListener = true; // Set the flag
 }
 
 // Add new mouse event handling functions here, before createAltitudeChart
@@ -236,54 +264,9 @@ function getPointIndexFromEvent(chart, event) {
     }
     const dataX = chart.scales.x.getValueForPixel(canvasPosition.x);
     const index = Math.max(0, Math.min(Math.round(dataX), chart.data.labels.length - 1));
+    // const index = Math.max(0, Math.min(Math.round(dataX), chart.data.labels.length - 1)); // Duplicate line removed
     return index;
 }
-
-
-function updateSelectionAnnotation(chart, startIndex, endIndex) {
-    if (!chart) return;
-
-    const annotations = {}; // Start with an empty object for annotations
-
-    if (startIndex !== null && endIndex !== null && startIndex >= 0 && endIndex >= 0 && chart.data && chart.data.labels) {
-        const minIndex = Math.min(startIndex, endIndex);
-        const maxIndex = Math.max(startIndex, endIndex);
-
-        annotations.selectionBox = {
-            type: 'box',
-            xMin: minIndex,
-            xMax: maxIndex,
-            backgroundColor: 'rgba(0, 102, 255, 0.2)',
-            borderColor: 'rgba(0, 102, 255, 0.5)',
-            borderWidth: 1
-        };
-        // Grey out areas outside selection
-        if (minIndex > 0) { // only add if there's space to the left
-            annotations.greyOutLeft = {
-                type: 'box',
-                xMin: 0,
-                xMax: minIndex,
-                backgroundColor: 'rgba(128, 128, 128, 0.3)',
-                borderColor: 'rgba(128, 128, 128, 0.0)',
-                borderWidth: 0
-            };
-        }
-        if (maxIndex < chart.data.labels.length - 1) { // only add if there's space to the right
-             annotations.greyOutRight = {
-                type: 'box',
-                xMin: maxIndex,
-                xMax: chart.data.labels.length - 1,
-                backgroundColor: 'rgba(128, 128, 128, 0.3)',
-                borderColor: 'rgba(128, 128, 128, 0.0)',
-                borderWidth: 0
-            };
-        }
-    }
-    // This replaces all existing annotations.
-    chart.options.plugins.annotation.annotations = annotations;
-    chart.update('none'); // 'none' for no animation
-}
-
 
 function handleChartMouseDown(event) {
     const chart = event.chart; // The chart instance is passed in our wrapper
@@ -292,14 +275,11 @@ function handleChartMouseDown(event) {
     dragStartIndex = getPointIndexFromEvent(chart, event.originalEvent || event); // event.originalEvent if we wrapped it
     dragCurrentIndex = dragStartIndex;
 
-    updateSelectionAnnotation(chart, dragStartIndex, dragCurrentIndex);
     updateHighlight(dragStartIndex); // Map marker
 
-    // Clear selection on the other chart
     const otherChart = (chart === altitudeChart) ? speedChart : altitudeChart;
-    if (otherChart) {
-        updateSelectionAnnotation(otherChart, null, null);
-    }
+    if (otherChart) updateChartLineStyling(otherChart, null); // Clear previous selection on other chart
+    updateChartLineStyling(chart, { start: dragStartIndex, end: dragStartIndex }); // Style initial point
 }
 
 function handleChartMouseMove(event) {
@@ -308,13 +288,18 @@ function handleChartMouseMove(event) {
 
     if (isDragging && chart === currentDraggingChart) {
         dragCurrentIndex = currentHoverIndex;
-        updateSelectionAnnotation(chart, dragStartIndex, dragCurrentIndex);
 
         if (throttleTimeoutId) clearTimeout(throttleTimeoutId);
         throttleTimeoutId = setTimeout(() => {
             if (!isDragging) return; // Check if drag was cancelled before timeout runs
             const tempMin = Math.min(dragStartIndex, dragCurrentIndex);
             const tempMax = Math.max(dragStartIndex, dragCurrentIndex);
+
+            // Update styling on the current chart being dragged
+            updateChartLineStyling(currentDraggingChart, { start: tempMin, end: tempMax });
+            // Synchronize styling on the other chart
+            const otherChart = (currentDraggingChart === altitudeChart) ? speedChart : altitudeChart;
+            if (otherChart) updateChartLineStyling(otherChart, { start: tempMin, end: tempMax });
 
             highlightRangeOnMap(tempMin, tempMax);
             calculateAndDisplayStats(gpxData, tempMin, tempMax);
@@ -331,31 +316,25 @@ function handleChartMouseUp(eventInfo) { // eventInfo is { chart, originalEvent 
         return;
     }
 
-    // Use currentDraggingChart as it's the one where dragging started.
-    // dragCurrentIndex should be up-to-date from the last mousemove on that chart's canvas,
-    // or if mouseup is outside, it's the last known dragCurrentIndex.
-    // If originalEvent is on a different chart, getPointIndexFromEvent might be misleading here.
-    // So, we rely on dragCurrentIndex already being set.
+    const chart = currentDraggingChart; // Use the chart where dragging started
 
     selectedRange.start = Math.min(dragStartIndex, dragCurrentIndex);
     selectedRange.end = Math.max(dragStartIndex, dragCurrentIndex);
 
     isDragging = false;
-    // currentDraggingChart will be reset after updates
 
-    // Final update for the chart that was dragged on
-    updateSelectionAnnotation(currentDraggingChart, selectedRange.start, selectedRange.end);
+    // Finalize styling on the chart that was dragged
+    updateChartLineStyling(chart, selectedRange);
 
-    const otherChart = (currentDraggingChart === altitudeChart) ? speedChart : altitudeChart;
-    if (otherChart) {
-        updateSelectionAnnotation(otherChart, selectedRange.start, selectedRange.end);
-    }
+    // Synchronize final styling to the other chart
+    const otherChart = (chart === altitudeChart) ? speedChart : altitudeChart;
+    if (otherChart) updateChartLineStyling(otherChart, selectedRange);
 
     highlightRangeOnMap(selectedRange.start, selectedRange.end);
     calculateAndDisplayStats(gpxData, selectedRange.start, selectedRange.end);
     updateHighlight(dragCurrentIndex);
 
-    console.log(`Selection finalized on ${currentDraggingChart.canvas.id}: ${selectedRange.start} to ${selectedRange.end}`);
+    console.log(`Selection finalized on ${chart.canvas.id}: ${selectedRange.start} to ${selectedRange.end}`);
 
     dragStartIndex = null;
     dragCurrentIndex = null;
@@ -510,7 +489,8 @@ function createAltitudeChart(gpxData) { // Renamed parameter
             datasets: [{
                 label: 'Altitude (m)',
                 data: altitudeData,
-                borderColor: 'rgb(75, 192, 192)',
+                borderColor: DEFAULT_ALTITUDE_COLOR,
+                borderWidth: DEFAULT_BORDER_WIDTH,
                 tension: 0.1,
                 pointRadius: 0,
                 pointHitRadius: 10
@@ -544,14 +524,7 @@ function createAltitudeChart(gpxData) { // Renamed parameter
                 }
             },
             plugins: {
-                autocolors: false, // Recommended by annotation plugin
-                annotation: {
-                    drawTime: 'afterDatasetsDraw', // Draw annotations on top
-                    annotations: {
-                        // Annotations will be added dynamically
-                    }
-                }
-                // Remove zoom plugin configuration
+                // No plugins needed for this configuration
             }
         }
     });
@@ -561,6 +534,7 @@ function createAltitudeChart(gpxData) { // Renamed parameter
     altitudeChart.canvas.onmousemove = (e) => handleChartMouseMove({ originalEvent: e, chart: altitudeChart });
     altitudeChart.canvas.onmouseout = (e) => handleChartMouseLeave({ originalEvent: e, chart: altitudeChart });
     // Note: onmouseup is handled globally by document.onmouseup
+    altitudeChart.myDefaultColor = DEFAULT_ALTITUDE_COLOR; // Store default color
 }
 
 function createSpeedChart(gpxData) { // Renamed parameter
@@ -588,7 +562,8 @@ function createSpeedChart(gpxData) { // Renamed parameter
             datasets: [{
                 label: 'Smoothed Speed (km/h, 20s avg)', // Updated label
                 data: speedData,
-                borderColor: 'rgb(255, 99, 132)',
+                borderColor: DEFAULT_SPEED_COLOR,
+                borderWidth: DEFAULT_BORDER_WIDTH,
                 tension: 0.1,
                 pointRadius: 0,
                 pointHitRadius: 10
@@ -622,14 +597,7 @@ function createSpeedChart(gpxData) { // Renamed parameter
                 }
             },
             plugins: {
-                autocolors: false, // Recommended by annotation plugin
-                annotation: {
-                    drawTime: 'afterDatasetsDraw', // Draw annotations on top
-                    annotations: {
-                        // Annotations will be added dynamically
-                    }
-                }
-                // Remove zoom plugin configuration
+                // No plugins needed for this configuration
             }
         }
     });
@@ -639,6 +607,42 @@ function createSpeedChart(gpxData) { // Renamed parameter
     speedChart.canvas.onmousemove = (e) => handleChartMouseMove({ originalEvent: e, chart: speedChart });
     speedChart.canvas.onmouseout = (e) => handleChartMouseLeave({ originalEvent: e, chart: speedChart });
     // Note: onmouseup is handled globally by document.onmouseup
+    speedChart.myDefaultColor = DEFAULT_SPEED_COLOR; // Store default color
+}
+
+function updateChartLineStyling(chart, currentRange) {
+    if (!chart || !chart.data || !chart.data.datasets || chart.data.datasets.length === 0) {
+        return;
+    }
+
+    const dataset = chart.data.datasets[0];
+    const defaultColor = chart.myDefaultColor || (chart === altitudeChart ? DEFAULT_ALTITUDE_COLOR : DEFAULT_SPEED_COLOR);
+
+
+    if (currentRange && currentRange.start !== null && currentRange.end !== null && currentRange.start <= currentRange.end) {
+        const startIndex = currentRange.start;
+        const endIndex = currentRange.end;
+
+        dataset.borderColor = function(context) {
+            const index = context.dataIndex;
+            if (index >= startIndex && index <= endIndex) {
+                return SELECTED_SEGMENT_COLOR;
+            }
+            return defaultColor;
+        };
+        dataset.borderWidth = function(context) {
+            const index = context.dataIndex;
+            if (index >= startIndex && index <= endIndex) {
+                return SELECTED_BORDER_WIDTH;
+            }
+            return DEFAULT_BORDER_WIDTH;
+        };
+    } else {
+        // Reset to default full line styling
+        dataset.borderColor = defaultColor;
+        dataset.borderWidth = DEFAULT_BORDER_WIDTH;
+    }
+    chart.update('none'); // 'none' to prevent animation
 }
 
 function updateHighlight(index) {
@@ -827,7 +831,8 @@ function calculateAndDisplayStats(fullGpxData, startIndex, endIndex) {
     statsData.forEach(stat => {
         statsHTML += `<span class="stat-item"><strong>${stat.label}</strong> ${stat.value}</span>`;
     });
-    statsHTML += '</div>';
+    statsHTML += `<button id="resetSelectionBtn" class="stat-item stat-button">Reset</button>`;
+    statsHTML += '</div>'; // Closing statsInnerContainer
 
     statsContainer.innerHTML = statsHTML;
 }

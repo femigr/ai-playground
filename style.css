@@ -68,26 +68,7 @@ h1 {
     border: 1px solid #ccc;
 }
 
-/* Add to the end of style.css */
-footer {
-    text-align: center;
-    padding: 10px 0;
-    margin-top: 20px;
-    border-top: 1px solid #ccc; /* Optional: adds a separator line */
-}
-
-#resetSelectionBtn {
-    padding: 8px 15px;
-    font-size: 0.9em;
-    cursor: pointer;
-    background-color: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-#resetSelectionBtn:hover {
-    background-color: #e0e0e0;
-}
+/* Footer styles removed as button is moved to statsContainer */
 
 #statsContainer {
     position: fixed;
@@ -117,23 +98,39 @@ footer {
 
 #statsInnerContainer {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on very small screens */
-    justify-content: space-around; /* Distribute items evenly with space around */
-    align-items: center; /* Align items vertically in the center */
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 5px;
+    /* border: 1px solid #eee; /* Optional: border for the stats bar */
+    /* background-color: #f9f9f9; /* Optional: background for the stats bar */
     width: 100%; /* Ensure it uses the full width of statsContainer */
 }
 
-.stat-item {
-    padding: 5px 10px; /* Padding within each stat item */
-    white-space: nowrap; /* Prevent labels and values from breaking into new lines */
-    text-align: center; /* Center text within the span if needed */
-    font-size: 0.9em; /* Consistent font size with other stats */
-    color: #333; /* Consistent text color */
+.stat-item { /* Applies to both text stats and the button if it has this class */
+    padding: 6px 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 0.9em;
+    /* color: #333; /* Already inherited or can be set if needed */
 }
 
-.stat-item strong {
-    color: #000; /* Black color for the statistic label */
-    margin-right: 5px; /* Space after the label */
+.stat-item strong { /* For labels within text stat items */
+    color: #000;
+    margin-right: 5px;
+}
+
+.stat-button { /* Class for the reset button */
+    /* .stat-item styles are already applied if button has both classes */
+    cursor: pointer;
+    /* background-color: #e7e7e7; /* Slightly different background for button */
+}
+
+.stat-button:hover {
+    background-color: #dcdcdc;
 }
 
 #altitudeChartContainer,
