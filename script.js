@@ -214,7 +214,9 @@ function initMap(gpxData) { // Renamed parameter to match usage
 
     // Create and add polyline for the track
     const latLngs = gpxData.points.map(p => [p.lat, p.lon]);
-    L.polyline(latLngs, { color: 'blue' }).addTo(map);
+    // Dynamically set polyline color from CSS variable
+    const polylineColor = getComputedStyle(document.documentElement).getPropertyValue('--gpx-data-strong-color').trim() || 'blue'; // Fallback to blue
+    L.polyline(latLngs, { color: polylineColor }).addTo(map);
 
     // Fit map bounds to the track
     map.fitBounds(latLngs);
@@ -270,10 +272,18 @@ function createAltitudeChart(gpxData) { // Renamed parameter
         altitudeChart.destroy();
     }
 
-    const isDarkMode = docElement.getAttribute('data-theme') === 'dark';
-    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-    const labelColor = isDarkMode ? '#e0e0e0' : '#333';
-    const datasetBorderColorAltitude = isDarkMode ? 'rgb(100, 217, 217)' : 'rgb(75, 192, 192)'; // Adjusted dark mode color slightly
+    const currentTheme = docElement.getAttribute('data-theme');
+    let gridColor, labelColor, datasetBorderColorAltitude;
+
+    if (currentTheme === 'dark') {
+        gridColor = 'rgba(225, 229, 234, 0.15)';
+        labelColor = '#e1e5ea';
+        datasetBorderColorAltitude = '#e74c3c';
+    } else { // Light mode or any other theme (system preference resolved by applyTheme)
+        gridColor = 'rgba(44, 62, 80, 0.1)';
+        labelColor = '#2c3e50';
+        datasetBorderColorAltitude = '#e74c3c';
+    }
 
     altitudeChart = new Chart(ctx, {
         type: 'line',
@@ -357,10 +367,18 @@ function createSpeedChart(gpxData) { // Renamed parameter
         speedChart.destroy();
     }
 
-    const isDarkMode = docElement.getAttribute('data-theme') === 'dark';
-    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-    const labelColor = isDarkMode ? '#e0e0e0' : '#333';
-    const datasetBorderColorSpeed = isDarkMode ? 'rgb(255, 129, 162)' : 'rgb(255, 99, 132)'; // Adjusted dark mode color slightly
+    const currentTheme = docElement.getAttribute('data-theme');
+    let gridColor, labelColor, datasetBorderColorSpeed;
+
+    if (currentTheme === 'dark') {
+        gridColor = 'rgba(225, 229, 234, 0.15)';
+        labelColor = '#e1e5ea';
+        datasetBorderColorSpeed = '#3498db';
+    } else { // Light mode or any other theme (system preference resolved by applyTheme)
+        gridColor = 'rgba(44, 62, 80, 0.1)';
+        labelColor = '#2c3e50';
+        datasetBorderColorSpeed = '#3498db';
+    }
 
     speedChart = new Chart(ctx, {
         type: 'line',
@@ -522,18 +540,23 @@ function calculateAndDisplayStats(gpxData) {
         { label: "Max Spd:", value: `${calculatedMaxSpeedKmh.toFixed(1)} km/h` }
     ];
 
-    // const statsContainer is already defined above and checked for existence.
-    // No need to get it again if it's already available in this scope.
-    // Assuming statsContainer is correctly fetched at the beginning of the function.
+    // Get the statsInnerContainer, which is now expected to be in index.html
+    const statsInnerContainer = document.getElementById('statsInnerContainer');
+    if (!statsInnerContainer) {
+        console.error("#statsInnerContainer element not found. Cannot display stats.");
+        return;
+    }
 
-    // Create HTML for the stats items
-    let statsHTML = '<div id="statsInnerContainer">'; // Inner container for flex layout
-    statsData.forEach(stat => {
-        statsHTML += `<span class="stat-item"><strong>${stat.label}</strong> ${stat.value}</span>`;
+    // Clear any previous content from statsInnerContainer
+    statsInnerContainer.innerHTML = '';
+
+    // Append new stat items
+    statsData.forEach(stat => { // statsData is calculated earlier in the function
+        const statElement = document.createElement('span');
+        statElement.classList.add('stat-item');
+        statElement.innerHTML = `<strong>${stat.label}</strong> ${stat.value}`;
+        statsInnerContainer.appendChild(statElement);
     });
-    statsHTML += '</div>';
-
-    statsContainer.innerHTML = statsHTML;
 }
 
 // Theme Switching Logic

@@ -1,118 +1,172 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Raleway:wght@600;700;800&display=swap');
+
 :root {
-  --background-color: #f4f4f4;
-  --text-color: #333;
-  --header-color: #333;
-  --gpx-data-bg: #fff;
-  --gpx-data-border: #ddd;
-  --gpx-data-shadow: rgba(0,0,0,0.1);
-  --gpx-data-list-item-bg: #f9f9f9;
-  --gpx-data-list-item-border: #eee;
-  --gpx-data-strong-color: #555;
-  --stats-bg: #f9f9f9;
-  --stats-border: #ccc;
-  --stats-shadow: rgba(0,0,0,0.1);
-  --stats-text-color: #333;
-  --stats-label-color: #000;
-  --chart-border-color: #ccc;
-  --map-border-color: #ccc;
-  --leaflet-tile-filter: none; /* No filter for light mode tiles */
-  --input-bg-color: #fff;
-  --input-text-color: #000; /* Assuming text color for input is black in light mode */
-  --input-border-color: #ccc; /* Assuming a light grey border for input */
-  --select-bg-color: #fff;
-  --select-text-color: #333;
-  --select-border-color: #ccc;
-  --error-text-color: #d9534f;
-  --error-bg-color: #f2dede;
-  --error-border-color: #ebccd1;
+  --background-color: #eef1f5; /* a very light, slightly cool gray/blue */
+  --text-color: #2c3e50; /* dark slate blue, for better readability than pure black */
+  --header-color: #1a1a1a; /* near-black for light theme header */
+  --gpx-data-bg: #ffffff; /* pure white for card-like elements */
+  --gpx-data-border: transparent; /* remove border, rely on shadow */
+  --gpx-data-shadow: rgba(44, 62, 80, 0.15); /* a softer, more spread out shadow */
+  --gpx-data-list-item-bg: #f8f9fa; /* very light gray for list items */
+  --gpx-data-list-item-border: #e9ecef; /* light gray border for list items */
+  --gpx-data-strong-color: #3498db; /* a bright, friendly blue for emphasis */
+  --stats-bg: linear-gradient(to right, #34495e, #2c3e50); /* a dark slate gradient for the stats bar, creating contrast */
+  --stats-border: transparent;
+  --stats-shadow: rgba(0,0,0,0.2);
+  --stats-text-color: #ecf0f1; /* light text on dark stats bar */
+  --stats-label-color: #f1c40f; /* sunflower yellow for labels on stats bar */
+  --chart-border-color: #dce1e6; /* a subtle border for charts */
+  --map-border-color: #dce1e6; /* a subtle border for the map */
+  --leaflet-tile-filter: none; /* keep default for light theme */
+  --input-bg-color: #ffffff;
+  --input-text-color: #2c3e50;
+  --input-border-color: #ced4da; /* standard input border */
+  --select-bg-color: #ffffff;
+  --select-text-color: #2c3e50;
+  --select-border-color: #ced4da;
+  --error-text-color: #c0392b; /* stronger red for errors */
+  --error-bg-color: #fceded; /* lighter red background for errors */
+  --error-border-color: #f5c6cb;
+  --header-bar-bg-light: #ffffff;
+  --header-bar-bg: var(--header-bar-bg-light); /* General variable */
 }
 
 [data-theme="dark"] {
-  --background-color: #121212;
-  --text-color: #e0e0e0;
-  --header-color: #e0e0e0;
-  --gpx-data-bg: #1e1e1e;
-  --gpx-data-border: #444;
-  --gpx-data-shadow: rgba(255,255,255,0.05); /* Lighter shadow for dark mode */
-  --gpx-data-list-item-bg: #2a2a2a;
-  --gpx-data-list-item-border: #3a3a3a;
-  --gpx-data-strong-color: #bbb;
-  --stats-bg: #1e1e1e;
-  --stats-border: #444;
-  --stats-shadow: rgba(255,255,255,0.05); /* Lighter shadow */
-  --stats-text-color: #e0e0e0;
-  --stats-label-color: #ffffff;
-  --chart-border-color: #444;
-  --map-border-color: #444;
-  --leaflet-tile-filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); /* Filter for dark mode tiles */
-  --input-bg-color: #333;
-  --input-text-color: #e0e0e0;
-  --input-border-color: #555;
-  --select-bg-color: #333;
-  --select-text-color: #e0e0e0;
-  --select-border-color: #555;
-  --error-text-color: #f8d7da; /* Lighter red for dark background */
-  --error-bg-color: #4a1a1f; /* Darker red background */
-  --error-border-color: #a36368; /* Muted red border */
+  --background-color: #1a1d24; /* a very dark, slightly desaturated blue/charcoal */
+  --text-color: #e1e5ea; /* a light, slightly cool gray for text */
+  --header-color: #f0f0f0; /* near-white for dark theme header */
+  --gpx-data-bg: #232730; /* a dark gray, slightly lighter than the main background */
+  --gpx-data-border: transparent;
+  --gpx-data-shadow: rgba(0, 0, 0, 0.3); /* a more pronounced shadow for dark mode */
+  --gpx-data-list-item-bg: #2c313a; /* darker list item background */
+  --gpx-data-list-item-border: #383d47; /* subtle border for list items */
+  --gpx-data-strong-color: #3498db; /* keep the bright blue accent */
+  --stats-bg: linear-gradient(to right, #1e222b, #16191f); /* a very dark gradient for stats bar */
+  --stats-border: transparent;
+  --stats-shadow: rgba(0,0,0,0.4);
+  --stats-text-color: #d1d5db; /* slightly softer light text for stats */
+  --stats-label-color: #f1c40f; /* keep sunflower yellow for labels */
+  --chart-border-color: #383d47; /* darker, subtle border for charts */
+  --map-border-color: #383d47; /* darker, subtle border for map */
+  --leaflet-tile-filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(95%) sepia(10%); /* stylized dark map */
+  --input-bg-color: #2c313a;
+  --input-text-color: #e1e5ea;
+  --input-border-color: #4a4f5a; /* darker input border */
+  --select-bg-color: #2c313a;
+  --select-text-color: #e1e5ea;
+  --select-border-color: #4a4f5a;
+  --error-text-color: #f89ea1; /* lighter, softer red for error text */
+  --error-bg-color: #4a2e30; /* dark, desaturated red for error background */
+  --error-border-color: #a35e61;
+  --header-bar-bg-dark: #232730;
+  --header-bar-bg: var(--header-bar-bg-dark); /* Override for dark theme */
+}
+
+/* Page Header */
+#pageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 25px; /* Adjusted padding */
+    background-color: var(--header-bar-bg);
+    border-bottom: 1px solid var(--chart-border-color); /* Use existing chart border color for separator */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Subtle shadow */
+    position: sticky; /* Make it sticky */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001; /* Ensure it's above other content like map/stats bar */
+    transition: background-color 0.3s ease, border-color 0.3s ease; /* Smooth theme change */
 }
 
 /* Apply variables */
 body {
-    font-family: sans-serif;
-    margin: 20px;
+    margin: 0; /* Ensure no external margins */
+    padding-top: 70px; /* For sticky header */
+    padding-left: 20px; /* Side spacing */
+    padding-right: 20px; /* Side spacing */
+    padding-bottom: 80px; /* For fixed stats bar */
+    font-family: 'Montserrat', sans-serif;
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6; /* Improve general readability */
-    padding-bottom: 60px; /* Adjusted for compact horizontal footer */
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1 {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 800;
+    letter-spacing: 1px;
+    /* text-shadow removed for light theme, conditionally added for dark */
     color: var(--header-color);
-    text-align: center; /* Center the main title */
-    margin-bottom: 30px;
+    /* text-align: center; */ /* No longer needed with flex */
+    margin: 0; /* Remove default margins */
+    flex-grow: 1; /* Allow title to take up available space */
+    /* font-size: 1.8em; /* Optionally adjust font size */
+}
+
+[data-theme="dark"] h1 {
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* Subtle dark shadow for white text on dark bg */
 }
 
 #gpxFile {
-    display: block; /* Make the file input take its own line */
-    margin: 0 auto 20px auto; /* Center the file input */
-    padding: 10px;
+    /* display: block; */ /* REMOVE this */
+    /* margin: 0 auto 20px auto; */ /* REMOVE this */
+    margin-left: 15px; /* Add some space */
+    padding: 12px; /* This was already there, ensure it's correct */
     background-color: var(--input-bg-color);
     color: var(--input-text-color);
     border: 1px solid var(--input-border-color);
-    border-radius: 4px; /* Added for consistency */
+    border-radius: 6px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#gpxFile:focus, .theme-selector select:focus {
+    border-color: var(--gpx-data-strong-color); /* Use the accent blue */
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
 }
 
 #gpxData {
-    padding: 20px; /* Increase padding */
+    padding: 25px;
     background-color: var(--gpx-data-bg);
-    border: 1px solid var(--gpx-data-border);
-    border-radius: 8px; /* Slightly more rounded corners */
+    border: 1px solid var(--gpx-data-border); /* Kept for variable usage, but border is transparent */
+    border-radius: 12px;
     min-height: 100px;
-    box-shadow: 0 2px 4px var(--gpx-data-shadow); /* Add a subtle shadow */
+    box-shadow: 0 2px 4px var(--gpx-data-shadow);
 }
 
 #gpxData p {
-    margin-bottom: 10px; /* Space out paragraphs within the data display */
-    color: var(--text-color); /* Ensure p tags inside inherit body text color */
+    margin-bottom: 10px;
+    color: var(--text-color);
 }
 
 #gpxData strong {
-    color: var(--gpx-data-strong-color); /* Slightly darker labels */
+    color: var(--gpx-data-strong-color);
 }
 
 #gpxData ul {
-    list-style-type: none; /* Remove default bullets */
-    padding-left: 0; /* Remove default padding */
+    list-style-type: none;
+    padding-left: 0;
 }
 
 #gpxData li {
     background-color: var(--gpx-data-list-item-bg);
     border: 1px solid var(--gpx-data-list-item-border);
     padding: 8px 12px;
-    margin-bottom: 5px; /* Space between list items */
-    border-radius: 4px;
+    margin-bottom: 5px;
+    border-radius: 6px;
     font-size: 0.9em;
-    color: var(--text-color); /* Ensure list item text also uses theme color */
+    color: var(--text-color);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+#gpxData li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(44, 62, 80, 0.1); /* Default light theme shadow */
+}
+
+[data-theme="dark"] #gpxData li:hover {
+    box-shadow: 0 4px 8px var(--gpx-data-shadow); /* Use the dark theme shadow var */
 }
 
 /* Style for error messages */
@@ -125,11 +179,27 @@ h1 {
     border-radius: 4px;
 }
 
-#map {
-    height: 400px;
+#map,
+#altitudeChartContainer,
+#speedChartContainer {
+    height: 400px; /* altitude/speed chart height is set in script.js if different */
     width: 100%;
     margin-bottom: 20px;
-    border: 1px solid var(--map-border-color);
+    border: 1px solid var(--map-border-color); /* map-border-color for map, chart-border-color for charts */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--gpx-data-shadow);
+}
+
+/* Specific border for charts if different from map */
+#altitudeChartContainer,
+#speedChartContainer {
+    border: 1px solid var(--chart-border-color);
+    background-color: var(--gpx-data-bg); /* Match chart background with gpxData for consistency */
+}
+
+[data-theme="dark"] #gpxFile:focus, [data-theme="dark"] .theme-selector select:focus {
+    border-color: var(--gpx-data-strong-color); /* Bright blue accent */
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25); /* Slightly adjusted alpha for dark */
 }
 
 [data-theme="dark"] .leaflet-tile-pane {
@@ -141,11 +211,13 @@ h1 {
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: var(--stats-bg);
-    border-top: 1px solid var(--stats-border);
-    padding: 10px 15px;
+    background: var(--stats-bg); /* Use gradient defined in :root or solid color in dark theme */
+    border-top: 1px solid var(--stats-border); /* Kept for variable, but transparent in new light */
+    padding: 15px 20px;
     box-shadow: 0 -2px 5px var(--stats-shadow);
     z-index: 1000;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
 }
 
 #statsInnerContainer {
@@ -167,34 +239,27 @@ h1 {
 .stat-item strong {
     color: var(--stats-label-color);
     margin-right: 5px;
-}
-
-#altitudeChartContainer,
-#speedChartContainer {
-    height: 300px;
-    width: 100%;
-    margin-bottom: 20px;
-    border: 1px solid var(--chart-border-color);
-    background-color: var(--gpx-data-bg); /* Match chart background with gpxData for consistency */
+    font-weight: 700;
 }
 
 .theme-selector {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 5px;
-  background-color: var(--background-color);
-  border-radius: 5px;
-  z-index: 1001; /* Ensure it's above map but below potential modals if any */
+  display: block;
+  width: fit-content; /* Or a specific max-width if preferred */
+  margin: 25px auto; /* Centering and vertical spacing */
+  padding: 15px 20px; /* Generous padding */
+  background-color: var(--input-bg-color); /* Consistent with other controls */
+  border-radius: 8px; /* Consistent rounded corners */
+  box-shadow: 0 2px 4px var(--gpx-data-shadow); /* Consistent shadow */
 }
 .theme-selector label {
   margin-right: 5px;
-  color: var(--text-color);
+  color: var(--text-color); /* Reverted to general text color */
 }
 .theme-selector select {
-  padding: 5px;
-  border-radius: 3px;
+  padding: 12px; /* Reverted to larger padding */
+  border-radius: 6px;
   border: 1px solid var(--select-border-color);
   background-color: var(--select-bg-color);
   color: var(--select-text-color);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }

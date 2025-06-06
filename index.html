@@ -9,7 +9,18 @@
     <script src="https://unpkg.com/gpxparser@3.0.8/dist/GPXParser.min.js"></script>
 </head>
 <body>
-    <h1>GPX Analyzer & Editor</h1>
+    <div id="pageHeader">
+        <h1>GPX Analyzer & Editor</h1>
+        <input type="file" id="gpxFile" accept=".gpx">
+    </div>
+    <div id="map"></div>
+    <div id="altitudeChartContainer">
+        <canvas id="altitudeChart"></canvas>
+    </div>
+    <div id="speedChartContainer">
+        <canvas id="speedChart"></canvas>
+    </div>
+
     <div class="theme-selector">
         <label for="theme">Theme:</label>
         <select id="theme" name="theme">
@@ -18,15 +29,12 @@
             <option value="dark">Dark</option>
         </select>
     </div>
-    <input type="file" id="gpxFile" accept=".gpx">
-    <div id="map"></div>
-    <div id="altitudeChartContainer">
-        <canvas id="altitudeChart"></canvas>
+
+    <div id="statsContainer">
+        <div id="statsInnerContainer">
+            <!-- Stat items will be populated here by script.js -->
+        </div>
     </div>
-    <div id="speedChartContainer">
-        <canvas id="speedChart"></canvas>
-    </div>
-    <div id="statsContainer"></div>
     <div id="gpxData">
         <p>Upload a GPX file to view the track on the map and analyze altitude/speed profiles.</p>
     </div>
