@@ -2,6 +2,7 @@
 console.log("script.js loaded");
 
 // Register Chart.js plugins here
+Chart.register(window.chartjsPluginZoom);
 // (No plugins are currently registered)
 
 
@@ -22,6 +23,7 @@ let isDragging = false;
 let dragStartIndex = null;
 let dragCurrentIndex = null; // Used for live updates during drag
 let currentDraggingChart = null; // To know which chart initiated the drag
+let isApplyingProgrammaticZoom = false; // Flag for zoom synchronization
 
 let map;
 let altitudeChart;
@@ -48,10 +50,9 @@ gpxFileInput.addEventListener('change', function(event) {
                 const gpx = new gpxParser();
                 gpx.parse(fileContent);
 
-                // Clear previous map and charts
                 if (map) {
                     map.remove();
-                    map = null; // Ensure it's reset for next file
+                    map = null;
                 }
                 if (altitudeChart) {
                     altitudeChart.destroy();
@@ -66,10 +67,8 @@ gpxFileInput.addEventListener('change', function(event) {
                     trackHighlightMarker = null;
                 }
 
+                gpxData = { points: [], totalDistance: 0 };
 
-                gpxData = { points: [], totalDistance: 0 }; // Reset gpxData
-
-                // ---> Start of new section to replace existing point processing <---
                 if (!gpx.tracks.length || !gpx.tracks[0].points || !gpx.tracks[0].points.length) {
                     gpxDataDisplay.innerHTML = '<p>No track data found in this GPX file.</p>';
                     if (map) { map.remove(); map = null; }
@@ -77,16 +76,16 @@ gpxFileInput.addEventListener('change', function(event) {
                     if (speedChart) { speedChart.destroy(); speedChart = null; }
                     return;
                 }
-                gpxDataDisplay.innerHTML = ''; // Clear display for map/charts
+                gpxDataDisplay.innerHTML = '';
 
-                gpxData.points = []; // Initialize points array
+                gpxData.points = [];
                 let totalDistance = 0;
                 const rawPoints = gpx.tracks[0].points;
 
                 for (let i = 0; i < rawPoints.length; i++) {
                     const currentRawPoint = rawPoints[i];
                     let distanceFromPrevious = 0;
-                    let currentRawSpeed = 0; // Store as raw speed
+                    let currentRawSpeed = 0;
 
                     if (i > 0) {
                         const prevRawPoint = rawPoints[i-1];
@@ -103,9 +102,9 @@ gpxFileInput.addEventListener('change', function(event) {
                         const prevTime = new Date(prevRawPoint.time).getTime();
 
                         if (!isNaN(currentTime) && !isNaN(prevTime)) {
-                            const timeDiff = (currentTime - prevTime) / 1000; // seconds
+                            const timeDiff = (currentTime - prevTime) / 1000;
                             if (timeDiff > 0) {
-                                currentRawSpeed = (distanceFromPrevious / timeDiff) * 3.6; // m/s to km/h
+                                currentRawSpeed = (distanceFromPrevious / timeDiff) * 3.6;
                             }
                         }
                     }
@@ -115,15 +114,14 @@ gpxFileInput.addEventListener('change', function(event) {
                         lat: parseFloat(currentRawPoint.lat),
                         lon: parseFloat(currentRawPoint.lon),
                         alt: currentRawPoint.ele !== undefined ? parseFloat(currentRawPoint.ele) : null,
-                        time: new Date(currentRawPoint.time), // Keep as Date object
+                        time: new Date(currentRawPoint.time),
                         distanceFromStart: totalDistance,
-                        rawSpeed: currentRawSpeed, // Store raw speed
-                        speed: 0 // Placeholder for smoothed speed
+                        rawSpeed: currentRawSpeed,
+                        speed: 0
                     });
                 }
                 gpxData.totalDistance = totalDistance;
 
-                // Second pass: Calculate smoothed speed (20-second floating average)
                 const timeWindowSeconds = 20;
                 for (let i = 0; i < gpxData.points.length; i++) {
                     const currentPoint = gpxData.points[i];
@@ -131,7 +129,6 @@ gpxFileInput.addEventListener('change', function(event) {
                     let sumSpeeds = 0;
                     let countSpeeds = 0;
 
-                    // Look backwards for points within the time window
                     for (let j = i; j >= 0; j--) {
                         const pastPoint = gpxData.points[j];
                         const pastTimeMs = pastPoint.time.getTime();
@@ -142,18 +139,16 @@ gpxFileInput.addEventListener('change', function(event) {
                                 countSpeeds++;
                             }
                         } else {
-                            break; // Points are too old, stop searching
+                            break;
                         }
                     }
-                    gpxData.points[i].speed = (countSpeeds > 0) ? (sumSpeeds / countSpeeds) : currentPoint.rawSpeed; // Use raw if no window
+                    gpxData.points[i].speed = (countSpeeds > 0) ? (sumSpeeds / countSpeeds) : currentPoint.rawSpeed;
                 }
-                // ---> End of new section <---
 
-                // Call functions to initialize map and charts
                 initMap(gpxData);
                 createAltitudeChart(gpxData);
                 createSpeedChart(gpxData);
-                calculateAndDisplayStats(gpxData); // Display stats after processing
+                calculateAndDisplayStats(gpxData);
 
             } catch (error) {
                 console.error("Error parsing GPX file:", error);
@@ -172,58 +167,34 @@ gpxFileInput.addEventListener('change', function(event) {
     }
 });
 
-// const resetSelectionBtn = document.getElementById('resetSelectionBtn'); // This direct listener is removed
-// if(resetSelectionBtn) { // This direct listener is removed
-    // resetSelectionBtn.addEventListener('click', function() { // This direct listener is removed
-        // selectedRange.start = null; // This direct listener is removed
-        // selectedRange.end = null; // This direct listener is removed
-// This direct listener is removed
-        // if (altitudeChart) updateChartLineStyling(altitudeChart, null); // This direct listener is removed
-        // if (speedChart) updateChartLineStyling(speedChart, null); // This direct listener is removed
-// This direct listener is removed
-        // highlightRangeOnMap(null, null); // Clears the red polyline // This direct listener is removed
-// This direct listener is removed
-        // if (gpxData && gpxData.points && gpxData.points.length > 0) { // This direct listener is removed
-            // calculateAndDisplayStats(gpxData); // This direct listener is removed
-        // } else { // This direct listener is removed
-            // const statsContainer = document.getElementById('statsContainer'); // This direct listener is removed
-            // if (statsContainer) { // This direct listener is removed
-                // statsContainer.innerHTML = '<div id="statsInnerContainer"></div>'; // This direct listener is removed
-            // } // This direct listener is removed
-        // } // This direct listener is removed
-// This direct listener is removed
-        // updateHighlight(null); // Hides map marker & clears chart point highlights // This direct listener is removed
-// This direct listener is removed
-        // isDragging = false; // This direct listener is removed
-        // dragStartIndex = null; // This direct listener is removed
-        // dragCurrentIndex = null; // This direct listener is removed
-        // currentDraggingChart = null; // This direct listener is removed
-// This direct listener is removed
-        // console.log("Selection has been reset."); // This direct listener is removed
-    // }); // This direct listener is removed
-// } // This direct listener is removed
-
 const statsContainerForEvent = document.getElementById('statsContainer');
-if (statsContainerForEvent && !statsContainerForEvent._hasResetListener) { // Use a flag to ensure it's added only once
+if (statsContainerForEvent && !statsContainerForEvent._hasResetListener) {
     statsContainerForEvent.addEventListener('click', function(event) {
         if (event.target && event.target.id === 'resetSelectionBtn') {
-            // console.log("Reset Selection button clicked (delegated)."); // Removed
             selectedRange.start = null;
             selectedRange.end = null;
 
-            if (altitudeChart) updateChartLineStyling(altitudeChart, null);
-            if (speedChart) updateChartLineStyling(speedChart, null);
+            if (altitudeChart) {
+                updateChartLineStyling(altitudeChart, null);
+                isApplyingProgrammaticZoom = true;
+                altitudeChart.resetZoom('none');
+                isApplyingProgrammaticZoom = false;
+            }
+            if (speedChart) {
+                updateChartLineStyling(speedChart, null);
+                isApplyingProgrammaticZoom = true;
+                speedChart.resetZoom('none');
+                isApplyingProgrammaticZoom = false;
+            }
 
             highlightRangeOnMap(null, null);
-            updateHighlight(null); // Hide map marker
+            updateHighlight(null);
 
-            // Reset drag state variables
             isDragging = false;
             dragStartIndex = null;
             dragCurrentIndex = null;
             currentDraggingChart = null;
 
-            // Recalculate stats for the entire track.
             if (gpxData && gpxData.points && gpxData.points.length > 0) {
                 calculateAndDisplayStats(gpxData);
             } else {
@@ -234,7 +205,7 @@ if (statsContainerForEvent && !statsContainerForEvent._hasResetListener) { // Us
             }
         }
     });
-    statsContainerForEvent._hasResetListener = true; // Set the flag
+    statsContainerForEvent._hasResetListener = true;
 }
 
 function getPointIndexFromEvent(chart, event) {
@@ -258,92 +229,7 @@ function getPointIndexFromEvent(chart, event) {
     return index;
 }
 
-function handleChartMouseDown(event) {
-    const chart = event.chart;
-    // console.log('[Event] handleChartMouseDown: Clearing style on otherChart', (chart === altitudeChart ? speedChart : altitudeChart) ? (chart === altitudeChart ? speedChart.canvas.id : altitudeChart.canvas.id) : 'N/A'); // Removed
-    const otherChart = (chart === altitudeChart) ? speedChart : altitudeChart;
-    if (otherChart) updateChartLineStyling(otherChart, null);
-
-    isDragging = true;
-    currentDraggingChart = chart;
-    dragStartIndex = getPointIndexFromEvent(chart, event.originalEvent || event);
-    dragCurrentIndex = dragStartIndex;
-
-    // console.log('[Event] handleChartMouseDown: Styling initial point on currentDraggingChart', currentDraggingChart ? currentDraggingChart.canvas.id : 'N/A', { start: dragStartIndex, end: dragStartIndex }); // Removed
-    updateChartLineStyling(chart, { start: dragStartIndex, end: dragStartIndex });
-
-    updateHighlight(dragStartIndex);
-}
-
-function handleChartMouseMove(event) {
-    const chart = event.chart;
-    const currentHoverIndex = getPointIndexFromEvent(chart, event.originalEvent || event);
-
-    if (isDragging && chart === currentDraggingChart) {
-        dragCurrentIndex = currentHoverIndex;
-
-        if (throttleTimeoutId) clearTimeout(throttleTimeoutId);
-        throttleTimeoutId = setTimeout(() => {
-            if (!isDragging) return;
-            const tempMin = Math.min(dragStartIndex, dragCurrentIndex);
-            const tempMax = Math.max(dragStartIndex, dragCurrentIndex);
-            const otherChart = (currentDraggingChart === altitudeChart) ? speedChart : altitudeChart;
-
-            // console.log('[Event] handleChartMouseMove (throttled): Updating style. currentDraggingChart:', currentDraggingChart ? currentDraggingChart.canvas.id : 'N/A', 'Other chart:', otherChart ? otherChart.canvas.id : 'N/A', 'Range:', { start: tempMin, end: tempMax }); // Removed
-            updateChartLineStyling(currentDraggingChart, { start: tempMin, end: tempMax });
-            if (otherChart) updateChartLineStyling(otherChart, { start: tempMin, end: tempMax });
-
-            highlightRangeOnMap(tempMin, tempMax);
-            calculateAndDisplayStats(gpxData, tempMin, tempMax);
-            updateHighlight(dragCurrentIndex);
-        }, THROTTLE_DELAY_MS);
-    } else if (!isDragging) {
-        // updateHighlight(currentHoverIndex);
-    }
-}
-
-function handleChartMouseUp(eventInfo) {
-    if (!isDragging || !currentDraggingChart) {
-        isDragging = false;
-        return;
-    }
-
-    const chart = currentDraggingChart;
-
-    selectedRange.start = Math.min(dragStartIndex, dragCurrentIndex);
-    selectedRange.end = Math.max(dragStartIndex, dragCurrentIndex);
-
-    isDragging = false;
-    const otherChart = (chart === altitudeChart) ? speedChart : altitudeChart;
-    // console.log('[Event] handleChartMouseUp: Finalizing style. Chart:', chart ? chart.canvas.id : 'N/A', 'Other chart:', otherChart ? otherChart.canvas.id : 'N/A', 'SelectedRange:', selectedRange); // Removed
-
-    updateChartLineStyling(chart, selectedRange);
-    if (otherChart) updateChartLineStyling(otherChart, selectedRange);
-
-    highlightRangeOnMap(selectedRange.start, selectedRange.end);
-    calculateAndDisplayStats(gpxData, selectedRange.start, selectedRange.end);
-    updateHighlight(dragCurrentIndex);
-
-    // console.log(`Selection finalized on ${chart.canvas.id}: ${selectedRange.start} to ${selectedRange.end}`); // Kept for now, useful
-
-    dragStartIndex = null;
-    dragCurrentIndex = null;
-    currentDraggingChart = null;
-}
-
-function handleChartMouseLeave(event) {
-    const chart = event.chart;
-    if (isDragging && chart === currentDraggingChart) {
-        // console.log("Mouse left chart canvas while dragging."); // Removed
-    }
-}
-
-document.onmouseup = (e) => {
-  if (isDragging && currentDraggingChart) {
-    handleChartMouseUp({ chart: currentDraggingChart, originalEvent: e });
-  }
-};
-
+// Manual drag selection functions are removed. Zoom plugin will handle selection.
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
@@ -380,40 +266,29 @@ function formatDistanceLabel(distanceKm) {
 }
 
 function initMap(gpxData) {
-    // console.log("Initializing map with data:", gpxData); // Kept for now
     if (!gpxData || !gpxData.points || gpxData.points.length === 0) {
-        // console.log("No points to display on map."); // Kept for now
         return;
     }
-
     const mapElement = document.getElementById('map');
     if (!mapElement) {
         console.error("Map element not found!");
         return;
     }
-
     map = L.map('map').setView([gpxData.points[0].lat, gpxData.points[0].lon], 13);
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-
     const latLngs = gpxData.points.map(p => [p.lat, p.lon]);
     L.polyline(latLngs, { color: 'blue' }).addTo(map);
-
     map.fitBounds(latLngs);
-
     if (trackHighlightMarker) {
         trackHighlightMarker.remove();
     }
     trackHighlightMarker = L.marker([gpxData.points[0].lat, gpxData.points[0].lon], { draggable: false }).addTo(map);
-
     map.on('mousemove', function(e) {
         if (!gpxData || !gpxData.points || gpxData.points.length === 0) return;
-
         let closestPointIndex = -1;
         let minDistance = Infinity;
-
         gpxData.points.forEach((point, index) => {
             const pointLatLng = L.latLng(point.lat, point.lon);
             const distance = e.latlng.distanceTo(pointLatLng);
@@ -422,7 +297,6 @@ function initMap(gpxData) {
                 closestPointIndex = index;
             }
         });
-
         if (closestPointIndex !== -1) {
             updateHighlight(closestPointIndex);
         }
@@ -430,9 +304,7 @@ function initMap(gpxData) {
 }
 
 function createAltitudeChart(gpxData) {
-    // console.log("Creating altitude chart with data:", gpxData); // Kept
     if (!gpxData || !gpxData.points || gpxData.points.length === 0) {
-        // console.log("No points for altitude chart."); // Kept
         return;
     }
     const ctx = document.getElementById('altitudeChart').getContext('2d');
@@ -440,10 +312,8 @@ function createAltitudeChart(gpxData) {
         console.error("Altitude chart canvas context not found!");
         return;
     }
-
     const labels = gpxData.points.map(p => formatDistanceLabel(p.distanceFromStart / 1000));
     const altitudeData = gpxData.points.map(p => p.alt !== null ? p.alt.toFixed(2) : null);
-
     if (altitudeChart) {
         altitudeChart.destroy();
     }
@@ -465,23 +335,10 @@ function createAltitudeChart(gpxData) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Distance (km)'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Altitude (m)'
-                    }
-                }
+                 x: { title: { display: true, text: 'Distance (km)'}},
+                 y: { title: { display: true, text: 'Altitude (m)'}}
             },
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
+            interaction: { mode: 'index', intersect: false },
             onHover: (event, chartElements) => {
                 if (!isDragging && chartElements.length > 0) {
                     const dataIndex = chartElements[0].index;
@@ -489,20 +346,80 @@ function createAltitudeChart(gpxData) {
                 }
             },
             plugins: {
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                    },
+                    zoom: {
+                        drag: {
+                            enabled: true,
+                            backgroundColor: 'rgba(155,155,155,0.3)',
+                            borderColor: 'rgb(155,155,155)',
+                            borderWidth: 1
+                        },
+                        mode: 'x',
+                        onZoomComplete: function({chart}) {
+                            if (isApplyingProgrammaticZoom) {
+                                console.log(`[Zoom] onZoomComplete on ${chart.canvas.id} skipped due to programmatic zoom.`);
+                                return;
+                            }
+
+                            const { min: newXMin, max: newXMax } = chart.scales.x;
+                            const allLabels = chart.data.labels;
+
+                            let startIndex = Math.max(0, Math.floor(newXMin));
+                            let endIndex = Math.min(allLabels.length - 1, Math.ceil(newXMax));
+
+                            if (startIndex < 0) startIndex = 0;
+                            if (endIndex >= allLabels.length) endIndex = allLabels.length - 1;
+
+                            if (startIndex > endIndex) {
+                                console.log(`[Zoom] onZoomComplete on ${chart.canvas.id} resulted in invalid index range (${startIndex}-${endIndex}). Resetting view.`);
+                                selectedRange.start = null;
+                                selectedRange.end = null;
+                                highlightRangeOnMap(null, null);
+                                calculateAndDisplayStats(gpxData);
+                                updateChartLineStyling(chart, null); // Reset current chart's line style
+
+                                const otherChartToReset = (chart === altitudeChart) ? speedChart : altitudeChart;
+                                if (otherChartToReset) {
+                                    console.log(`[Zoom] Programmatically resetting zoom on ${otherChartToReset.canvas.id}.`);
+                                    isApplyingProgrammaticZoom = true;
+                                    otherChartToReset.resetZoom('none');
+                                    updateChartLineStyling(otherChartToReset, null); // Reset other chart's line style
+                                    isApplyingProgrammaticZoom = false;
+                                }
+                                return;
+                            }
+
+                            selectedRange.start = startIndex;
+                            selectedRange.end = endIndex;
+                            console.log(`[Zoom] Zoom complete on ${chart.canvas.id}. Range Indices: ${startIndex}-${endIndex}. Applying to map/stats.`);
+
+                            highlightRangeOnMap(selectedRange.start, selectedRange.end);
+                            calculateAndDisplayStats(gpxData, selectedRange.start, selectedRange.end);
+                            updateChartLineStyling(chart, selectedRange); // Update current chart's line style
+
+                            const otherChartToSync = (chart === altitudeChart) ? speedChart : altitudeChart;
+                            if (otherChartToSync) {
+                                console.log(`[Zoom] Programmatically zooming ${otherChartToSync.canvas.id} to match range: ${newXMin}-${newXMax}.`);
+                                isApplyingProgrammaticZoom = true;
+                                otherChartToSync.zoomScale('x', { min: newXMin, max: newXMax }, 'none');
+                                updateChartLineStyling(otherChartToSync, selectedRange); // Sync other chart's line style
+                                isApplyingProgrammaticZoom = false;
+                            }
+                        }
+                    }
+                }
             }
         }
     });
-
-    altitudeChart.canvas.onmousedown = (e) => handleChartMouseDown({ originalEvent: e, chart: altitudeChart });
-    altitudeChart.canvas.onmousemove = (e) => handleChartMouseMove({ originalEvent: e, chart: altitudeChart });
-    altitudeChart.canvas.onmouseout = (e) => handleChartMouseLeave({ originalEvent: e, chart: altitudeChart });
-    altitudeChart.myDefaultColor = DEFAULT_ALTITUDE_COLOR;
+    // altitudeChart.myDefaultColor = DEFAULT_ALTITUDE_COLOR; // This line is removed as per instructions
 }
 
 function createSpeedChart(gpxData) {
-    // console.log("Creating speed chart with data:", gpxData); // Kept
     if (!gpxData || !gpxData.points || gpxData.points.length === 0) {
-        // console.log("No points for speed chart."); // Kept
         return;
     }
     const ctx = document.getElementById('speedChart').getContext('2d');
@@ -510,10 +427,8 @@ function createSpeedChart(gpxData) {
         console.error("Speed chart canvas context not found!");
         return;
     }
-
     const labels = gpxData.points.map(p => formatDistanceLabel(p.distanceFromStart / 1000));
     const speedData = gpxData.points.map(p => (p.speed !== null && isFinite(p.speed)) ? p.speed.toFixed(2) : null);
-
     if (speedChart) {
         speedChart.destroy();
     }
@@ -534,24 +449,8 @@ function createSpeedChart(gpxData) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Distance (km)'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Speed (km/h)'
-                    }
-                }
-            },
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
+            scales: { /* ... */ },
+            interaction: { mode: 'index', intersect: false, },
             onHover: (event, chartElements) => {
                  if (!isDragging && chartElements.length > 0) {
                     const dataIndex = chartElements[0].index;
@@ -559,52 +458,113 @@ function createSpeedChart(gpxData) {
                 }
             },
             plugins: {
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                    },
+                    zoom: {
+                        drag: {
+                            enabled: true,
+                            backgroundColor: 'rgba(155,155,155,0.3)',
+                            borderColor: 'rgb(155,155,155)',
+                            borderWidth: 1
+                        },
+                        mode: 'x',
+                        onZoomComplete: function({chart}) {
+                            if (isApplyingProgrammaticZoom) {
+                                console.log(`[Zoom] onZoomComplete on ${chart.canvas.id} skipped due to programmatic zoom.`);
+                                return;
+                            }
+
+                            const { min: newXMin, max: newXMax } = chart.scales.x;
+                            const allLabels = chart.data.labels;
+
+                            let startIndex = Math.max(0, Math.floor(newXMin));
+                            let endIndex = Math.min(allLabels.length - 1, Math.ceil(newXMax));
+
+                            if (startIndex < 0) startIndex = 0;
+                            if (endIndex >= allLabels.length) endIndex = allLabels.length - 1;
+
+                            if (startIndex > endIndex) {
+                                console.log(`[Zoom] onZoomComplete on ${chart.canvas.id} resulted in invalid index range (${startIndex}-${endIndex}). Resetting view.`);
+                                selectedRange.start = null;
+                                selectedRange.end = null;
+                                highlightRangeOnMap(null, null);
+                                calculateAndDisplayStats(gpxData);
+                                updateChartLineStyling(chart, null);
+
+                                const otherChartToReset = (chart === altitudeChart) ? speedChart : altitudeChart;
+                                if (otherChartToReset) {
+                                    console.log(`[Zoom] Programmatically resetting zoom on ${otherChartToReset.canvas.id}.`);
+                                    isApplyingProgrammaticZoom = true;
+                                    otherChartToReset.resetZoom('none');
+                                    updateChartLineStyling(otherChartToReset, null);
+                                    isApplyingProgrammaticZoom = false;
+                                }
+                                return;
+                            }
+
+                            selectedRange.start = startIndex;
+                            selectedRange.end = endIndex;
+                            console.log(`[Zoom] Zoom complete on ${chart.canvas.id}. Range Indices: ${startIndex}-${endIndex}. Applying to map/stats.`);
+
+                            highlightRangeOnMap(selectedRange.start, selectedRange.end);
+                            calculateAndDisplayStats(gpxData, selectedRange.start, selectedRange.end);
+                            updateChartLineStyling(chart, selectedRange);
+
+                            const otherChartToSync = (chart === altitudeChart) ? speedChart : altitudeChart;
+                            if (otherChartToSync) {
+                                console.log(`[Zoom] Programmatically zooming ${otherChartToSync.canvas.id} to match range: ${newXMin}-${newXMax}.`);
+                                isApplyingProgrammaticZoom = true;
+                                otherChartToSync.zoomScale('x', { min: newXMin, max: newXMax }, 'none');
+                                updateChartLineStyling(otherChartToSync, selectedRange);
+                                isApplyingProgrammaticZoom = false;
+                            }
+                        }
+                    }
+                }
             }
         }
     });
-
-    speedChart.canvas.onmousedown = (e) => handleChartMouseDown({ originalEvent: e, chart: speedChart });
-    speedChart.canvas.onmousemove = (e) => handleChartMouseMove({ originalEvent: e, chart: speedChart });
-    speedChart.canvas.onmouseout = (e) => handleChartMouseLeave({ originalEvent: e, chart: speedChart });
-    speedChart.myDefaultColor = DEFAULT_SPEED_COLOR;
+    // speedChart.myDefaultColor = DEFAULT_SPEED_COLOR; // This line is removed
 }
 
 function updateChartLineStyling(chart, currentRange) {
-    // console.log(`[Styling] updateChartLineStyling called for chart: ${chart.canvas.id}, range:`, currentRange);
+    // console.log(`[Styling Debug] updateChartLineStyling FOR CHART: ${chart.canvas.id}, CALLED WITH RANGE:`, currentRange);
 
     if (!chart || !chart.data || !chart.data.datasets || chart.data.datasets.length === 0) {
-        // console.warn('[Styling] Chart or dataset not found for styling.'); // Removed
+        // console.warn('[Styling Debug] Chart or dataset not found for styling in updateChartLineStyling.');
         return;
     }
 
     const dataset = chart.data.datasets[0];
-    const defaultColor = chart.myDefaultColor || (chart.canvas.id === 'altitudeChart' ? DEFAULT_ALTITUDE_COLOR : DEFAULT_SPEED_COLOR);
+    const defaultColorFromChart = chart.myDefaultColor || (chart.canvas.id === 'altitudeChart' ? DEFAULT_ALTITUDE_COLOR : DEFAULT_SPEED_COLOR); // Fallback if myDefaultColor is not set
+    const numDataPoints = chart.data.datasets[0].data.length;
 
-    if (currentRange && currentRange.start !== null && currentRange.end !== null && currentRange.start <= currentRange.end) {
+    if (currentRange && currentRange.start !== null && currentRange.end !== null && currentRange.start <= currentRange.end && numDataPoints > 0) {
         const startIndex = currentRange.start;
         const endIndex = currentRange.end;
-        // console.log(`[Styling] Applying selected style. Range: ${startIndex}-${endIndex} for ${chart.canvas.id}`); // Removed
+        // console.log(`[Styling Debug] APPLYING ARRAY styles for range: ${startIndex}-${endIndex} on chart: ${chart.canvas.id}`);
 
-        dataset.borderColor = function(context) {
-            const index = context.dataIndex;
-            const inRange = index >= startIndex && index <= endIndex;
-            const color = inRange ? SELECTED_SEGMENT_COLOR : defaultColor;
-            // console.log(`[Styling] borderColor for ${chart.canvas.id} - Idx: ${index}, Range: ${startIndex}-${endIndex}, InRange: ${inRange}, Color: ${color}`);
-            return color;
-        };
-        dataset.borderWidth = function(context) {
-            const index = context.dataIndex;
-            const inRange = index >= startIndex && index <= endIndex;
-            const width = inRange ? SELECTED_BORDER_WIDTH : DEFAULT_BORDER_WIDTH;
-            // console.log(`[Styling] borderWidth for ${chart.canvas.id} - Idx: ${index}, Range: ${startIndex}-${endIndex}, InRange: ${inRange}, Width: ${width}`);
-            return width;
-        };
+        const newBorderColors = new Array(numDataPoints);
+        const newBorderWidths = new Array(numDataPoints);
+
+        for (let i = 0; i < numDataPoints; i++) {
+            const inRange = (i >= startIndex && i <= endIndex);
+            newBorderColors[i] = inRange ? SELECTED_SEGMENT_COLOR : defaultColorFromChart;
+            newBorderWidths[i] = inRange ? SELECTED_BORDER_WIDTH : DEFAULT_BORDER_WIDTH;
+            // console.log(`[Styling Debug] Array Gen - Chart: ${chart.canvas.id}, Idx: ${i}, Range: ${startIndex}-${endIndex}, InRange: ${inRange}, Color: ${newBorderColors[i]}, Width: ${newBorderWidths[i]}`);
+        }
+        dataset.borderColor = newBorderColors;
+        dataset.borderWidth = newBorderWidths;
+
     } else {
-        // console.log(`[Styling] Resetting to default style for ${chart.canvas.id}`); // Removed
-        dataset.borderColor = defaultColor;
+        // console.log(`[Styling Debug] RESETTING styles to default (static values) on chart: ${chart.canvas.id}`);
+        dataset.borderColor = defaultColorFromChart;
         dataset.borderWidth = DEFAULT_BORDER_WIDTH;
     }
-    chart.update();      // Use default update mode
+    chart.update();
 }
 
 function updateHighlight(index) {
@@ -684,7 +644,7 @@ function highlightRangeOnMap(startIndex, endIndex) {
             }).addTo(map);
         }
     } else {
-        // console.log("Invalid range or no range selected, clearing map highlight."); // Kept for now
+        // console.log("Invalid range or no range selected, clearing map highlight.");
     }
 }
 
@@ -698,9 +658,6 @@ function calculateAndDisplayStats(fullGpxData, startIndex, endIndex) {
     let pointsToProcess = fullGpxData.points;
     if (startIndex !== undefined && endIndex !== undefined && startIndex !== null && endIndex !== null && startIndex <= endIndex && startIndex >= 0 && endIndex < fullGpxData.points.length) {
         pointsToProcess = fullGpxData.points.slice(startIndex, endIndex + 1);
-        // console.log(`Calculating stats for range: ${startIndex} - ${endIndex}, ${pointsToProcess.length} points`); // Kept
-    } else {
-        // console.log("Calculating stats for full track."); // Kept
     }
 
     if (!pointsToProcess || pointsToProcess.length === 0) {
@@ -717,7 +674,6 @@ function calculateAndDisplayStats(fullGpxData, startIndex, endIndex) {
         rangeTotalDistanceMeters = 0;
     }
 
-
     let totalTimeInSeconds = 0;
     if (pointsToProcess.length > 1) {
         const firstPointTime = pointsToProcess[0].time.getTime();
@@ -732,7 +688,6 @@ function calculateAndDisplayStats(fullGpxData, startIndex, endIndex) {
         calculatedAverageSpeedKmh = 0;
     }
 
-
     let calculatedTotalAscent = 0;
     if (pointsToProcess.length > 0) {
         for (let i = 1; i < pointsToProcess.length; i++) {
@@ -746,7 +701,6 @@ function calculateAndDisplayStats(fullGpxData, startIndex, endIndex) {
         }
     }
 
-
     let calculatedMaxSpeedKmh = 0;
     if (pointsToProcess.length > 0) {
         pointsToProcess.forEach(point => {
@@ -758,7 +712,6 @@ function calculateAndDisplayStats(fullGpxData, startIndex, endIndex) {
             calculatedMaxSpeedKmh = pointsToProcess[0].speed;
         }
     }
-
 
     const statsData = [
         { label: "Dist:", value: `${(rangeTotalDistanceMeters / 1000).toFixed(2)} km` },
@@ -777,3 +730,5 @@ function calculateAndDisplayStats(fullGpxData, startIndex, endIndex) {
 
     statsContainer.innerHTML = statsHTML;
 }
+
+[end of script.js]
