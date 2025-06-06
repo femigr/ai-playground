@@ -214,7 +214,9 @@ function initMap(gpxData) { // Renamed parameter to match usage
 
     // Create and add polyline for the track
     const latLngs = gpxData.points.map(p => [p.lat, p.lon]);
-    L.polyline(latLngs, { color: 'blue' }).addTo(map);
+    // Dynamically set polyline color from CSS variable
+    const polylineColor = getComputedStyle(document.documentElement).getPropertyValue('--gpx-data-strong-color').trim() || 'blue'; // Fallback to blue
+    L.polyline(latLngs, { color: polylineColor }).addTo(map);
 
     // Fit map bounds to the track
     map.fitBounds(latLngs);
@@ -273,18 +275,14 @@ function createAltitudeChart(gpxData) { // Renamed parameter
     const currentTheme = docElement.getAttribute('data-theme');
     let gridColor, labelColor, datasetBorderColorAltitude;
 
-    if (currentTheme === 'road-bike') {
-        gridColor = 'rgba(236, 240, 241, 0.15)'; // light silver, slightly transparent
-        labelColor = '#ecf0f1'; // light silver
-        datasetBorderColorAltitude = '#f1c40f'; // sunflower yellow
-    } else if (currentTheme === 'dark') {
-        gridColor = 'rgba(255, 255, 255, 0.1)';
-        labelColor = '#e0e0e0';
-        datasetBorderColorAltitude = 'rgb(100, 217, 217)';
-    } else { // Light mode or any other theme
-        gridColor = 'rgba(0, 0, 0, 0.1)';
-        labelColor = '#333';
-        datasetBorderColorAltitude = 'rgb(75, 192, 192)';
+    if (currentTheme === 'dark') {
+        gridColor = 'rgba(225, 229, 234, 0.15)';
+        labelColor = '#e1e5ea';
+        datasetBorderColorAltitude = '#e74c3c';
+    } else { // Light mode or any other theme (system preference resolved by applyTheme)
+        gridColor = 'rgba(44, 62, 80, 0.1)';
+        labelColor = '#2c3e50';
+        datasetBorderColorAltitude = '#e74c3c';
     }
 
     altitudeChart = new Chart(ctx, {
@@ -372,18 +370,14 @@ function createSpeedChart(gpxData) { // Renamed parameter
     const currentTheme = docElement.getAttribute('data-theme');
     let gridColor, labelColor, datasetBorderColorSpeed;
 
-    if (currentTheme === 'road-bike') {
-        gridColor = 'rgba(236, 240, 241, 0.15)';
-        labelColor = '#ecf0f1';
-        datasetBorderColorSpeed = '#e74c3c'; // bright red-orange
-    } else if (currentTheme === 'dark') {
-        gridColor = 'rgba(255, 255, 255, 0.1)';
-        labelColor = '#e0e0e0';
-        datasetBorderColorSpeed = 'rgb(255, 129, 162)';
-    } else { // Light mode or any other theme
-        gridColor = 'rgba(0, 0, 0, 0.1)';
-        labelColor = '#333';
-        datasetBorderColorSpeed = 'rgb(255, 99, 132)';
+    if (currentTheme === 'dark') {
+        gridColor = 'rgba(225, 229, 234, 0.15)';
+        labelColor = '#e1e5ea';
+        datasetBorderColorSpeed = '#3498db';
+    } else { // Light mode or any other theme (system preference resolved by applyTheme)
+        gridColor = 'rgba(44, 62, 80, 0.1)';
+        labelColor = '#2c3e50';
+        datasetBorderColorSpeed = '#3498db';
     }
 
     speedChart = new Chart(ctx, {
