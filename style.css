@@ -83,7 +83,7 @@
 body {
     padding-top: 70px; /* Add padding to body to account for sticky header height */
     font-family: 'Montserrat', sans-serif;
-    margin: 20px;
+    margin: 0 20px 20px 20px; /* Top margin removed, others kept */
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6; /* Improve general readability */
@@ -241,19 +241,20 @@ h1 {
 }
 
 .theme-selector {
-  /* position: absolute; top: 10px; right: 10px; */ /* REMOVE these */
-  padding: 5px; /* Keep or adjust */
-  /* background-color: var(--background-color); */ /* No longer needed, header has own BG */
+  padding: 0; /* Adjusted for footer */
+  background-color: transparent; /* Ensure it's transparent in footer */
   border-radius: 5px; /* Keep or adjust */
-  /* z-index: 1001; */ /* REMOVE this, header has z-index */
-  margin-left: 15px; /* Add some space */
+  margin-left: auto; /* Push to the right of other flex items */
+  display: flex; /* For aligning label and select */
+  align-items: center; /* For aligning label and select */
 }
 .theme-selector label {
   margin-right: 5px;
-  color: var(--text-color);
+  color: var(--stats-text-color); /* Match footer text color */
+  /* vertical-align: middle; */ /* Not needed with flex align-items: center */
 }
 .theme-selector select {
-  padding: 12px;
+  padding: 5px 8px; /* Reduced padding for footer */
   border-radius: 6px;
   border: 1px solid var(--select-border-color);
   background-color: var(--select-bg-color);

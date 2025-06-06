@@ -540,18 +540,44 @@ function calculateAndDisplayStats(gpxData) {
         { label: "Max Spd:", value: `${calculatedMaxSpeedKmh.toFixed(1)} km/h` }
     ];
 
-    // const statsContainer is already defined above and checked for existence.
-    // No need to get it again if it's already available in this scope.
-    // Assuming statsContainer is correctly fetched at the beginning of the function.
+    // Get the statsInnerContainer, which is now expected to be in index.html
+    const statsInnerContainer = document.getElementById('statsInnerContainer');
+    if (!statsInnerContainer) {
+        console.error("#statsInnerContainer element not found. Cannot display stats.");
+        // Fallback or alternative: If statsContainer (parent) is guaranteed,
+        // and we absolutely must have statsInnerContainer:
+        // const parentContainer = document.getElementById('statsContainer');
+        // if (parentContainer) {
+        //     statsInnerContainer = parentContainer.querySelector('#statsInnerContainer');
+        //     if (!statsInnerContainer) { /* could create and append it here if necessary */ }
+        // } else {
+        //    console.error("Stats container (parent) not found!");
+        //    return;
+        // }
+        // For now, we assume #statsInnerContainer is correctly defined in index.html
+        return;
+    }
 
-    // Create HTML for the stats items
-    let statsHTML = '<div id="statsInnerContainer">'; // Inner container for flex layout
+    // Clear only previous stat items from statsInnerContainer
+    const oldStatItems = statsInnerContainer.querySelectorAll('.stat-item');
+    oldStatItems.forEach(item => item.remove());
+
+    // Append new stat items (theme selector will be preserved)
     statsData.forEach(stat => {
-        statsHTML += `<span class="stat-item"><strong>${stat.label}</strong> ${stat.value}</span>`;
+        const statElement = document.createElement('span');
+        statElement.classList.add('stat-item');
+        statElement.innerHTML = `<strong>${stat.label}</strong> ${stat.value}`;
+        // Prepend stat items to keep theme selector last, or append and adjust CSS order if needed.
+        // For now, appending and relying on flex order or CSS order property for theme selector.
+        // If theme selector should always be last, it should be appended *after* these stat items.
+        // The current HTML structure has theme selector last. So stat items should be inserted *before* it.
+        const themeSelectorDiv = statsInnerContainer.querySelector('.theme-selector');
+        if (themeSelectorDiv) {
+            statsInnerContainer.insertBefore(statElement, themeSelectorDiv);
+        } else {
+            statsInnerContainer.appendChild(statElement); // Fallback if theme selector not found
+        }
     });
-    statsHTML += '</div>';
-
-    statsContainer.innerHTML = statsHTML;
 }
 
 // Theme Switching Logic
