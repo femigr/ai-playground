@@ -265,3 +265,20 @@ h1 {
   color: var(--select-text-color);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
+
+#resetSelectionBtn {
+    display: block;
+    margin: 10px auto;
+    padding: 8px 15px;
+    background-color: var(--input-bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--gpx-data-strong-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#resetSelectionBtn:hover {
+    background-color: var(--gpx-data-strong-color);
+    color: var(--input-bg-color); /* Text color on hover to match original button background */
+}
