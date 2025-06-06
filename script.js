@@ -270,10 +270,22 @@ function createAltitudeChart(gpxData) { // Renamed parameter
         altitudeChart.destroy();
     }
 
-    const isDarkMode = docElement.getAttribute('data-theme') === 'dark';
-    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-    const labelColor = isDarkMode ? '#e0e0e0' : '#333';
-    const datasetBorderColorAltitude = isDarkMode ? 'rgb(100, 217, 217)' : 'rgb(75, 192, 192)'; // Adjusted dark mode color slightly
+    const currentTheme = docElement.getAttribute('data-theme');
+    let gridColor, labelColor, datasetBorderColorAltitude;
+
+    if (currentTheme === 'road-bike') {
+        gridColor = 'rgba(236, 240, 241, 0.15)'; // light silver, slightly transparent
+        labelColor = '#ecf0f1'; // light silver
+        datasetBorderColorAltitude = '#f1c40f'; // sunflower yellow
+    } else if (currentTheme === 'dark') {
+        gridColor = 'rgba(255, 255, 255, 0.1)';
+        labelColor = '#e0e0e0';
+        datasetBorderColorAltitude = 'rgb(100, 217, 217)';
+    } else { // Light mode or any other theme
+        gridColor = 'rgba(0, 0, 0, 0.1)';
+        labelColor = '#333';
+        datasetBorderColorAltitude = 'rgb(75, 192, 192)';
+    }
 
     altitudeChart = new Chart(ctx, {
         type: 'line',
@@ -357,10 +369,22 @@ function createSpeedChart(gpxData) { // Renamed parameter
         speedChart.destroy();
     }
 
-    const isDarkMode = docElement.getAttribute('data-theme') === 'dark';
-    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-    const labelColor = isDarkMode ? '#e0e0e0' : '#333';
-    const datasetBorderColorSpeed = isDarkMode ? 'rgb(255, 129, 162)' : 'rgb(255, 99, 132)'; // Adjusted dark mode color slightly
+    const currentTheme = docElement.getAttribute('data-theme');
+    let gridColor, labelColor, datasetBorderColorSpeed;
+
+    if (currentTheme === 'road-bike') {
+        gridColor = 'rgba(236, 240, 241, 0.15)';
+        labelColor = '#ecf0f1';
+        datasetBorderColorSpeed = '#e74c3c'; // bright red-orange
+    } else if (currentTheme === 'dark') {
+        gridColor = 'rgba(255, 255, 255, 0.1)';
+        labelColor = '#e0e0e0';
+        datasetBorderColorSpeed = 'rgb(255, 129, 162)';
+    } else { // Light mode or any other theme
+        gridColor = 'rgba(0, 0, 0, 0.1)';
+        labelColor = '#333';
+        datasetBorderColorSpeed = 'rgb(255, 99, 132)';
+    }
 
     speedChart = new Chart(ctx, {
         type: 'line',

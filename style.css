@@ -56,6 +56,35 @@
   --error-border-color: #a36368; /* Muted red border */
 }
 
+[data-theme="road-bike"] {
+    --background-color: #2c3e50; /* Dark slate blue */
+    --text-color: #ecf0f1; /* Light silver */
+    --header-color: #e74c3c; /* Bright red-orange */
+    --gpx-data-bg: #34495e; /* Slightly lighter slate blue */
+    --gpx-data-border: #e74c3c; /* Bright red-orange border */
+    --gpx-data-shadow: rgba(231, 76, 60, 0.2); /* Shadow with a hint of red-orange */
+    --gpx-data-list-item-bg: #2c3e50; /* Dark slate blue */
+    --gpx-data-list-item-border: #3498db; /* Bright blue */
+    --gpx-data-strong-color: #f1c40f; /* Sunflower yellow */
+    --stats-bg: #34495e; /* Slightly lighter slate blue */
+    --stats-border: #e74c3c; /* Bright red-orange */
+    --stats-shadow: rgba(0,0,0,0.2);
+    --stats-text-color: #ecf0f1; /* Light silver */
+    --stats-label-color: #f1c40f; /* Sunflower yellow */
+    --chart-border-color: #3498db; /* Bright blue */
+    --map-border-color: #3498db; /* Bright blue */
+    --leaflet-tile-filter: sepia(60%) hue-rotate(190deg) saturate(200%) brightness(70%) contrast(110%); /* A stylized map filter */
+    --input-bg-color: #34495e; /* Slightly lighter slate blue */
+    --input-text-color: #ecf0f1; /* Light silver */
+    --input-border-color: #3498db; /* Bright blue */
+    --select-bg-color: #34495e; /* Slightly lighter slate blue */
+    --select-text-color: #ecf0f1; /* Light silver */
+    --select-border-color: #3498db; /* Bright blue */
+    --error-text-color: #e74c3c; /* Bright red-orange for error text */
+    --error-bg-color: #5e3434; /* Darker, muted red for error background */
+    --error-border-color: #c0392b; /* Slightly brighter red for error border */
+}
+
 /* Apply variables */
 body {
     font-family: sans-serif;
@@ -133,6 +162,10 @@ h1 {
 }
 
 [data-theme="dark"] .leaflet-tile-pane {
+    filter: var(--leaflet-tile-filter);
+}
+
+[data-theme="road-bike"] .leaflet-tile-pane {
     filter: var(--leaflet-tile-filter);
 }
 
