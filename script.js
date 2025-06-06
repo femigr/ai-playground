@@ -868,15 +868,37 @@ function applyTheme(theme) {
 
     // Recreate charts if they exist to apply new theme colors
     // Ensure gpxData is available and populated
-    if (currentGpxData && currentGpxData.points && currentGpxData.points.length > 0) {
-        if (altitudeChart) {
-            // altitudeChart.destroy(); // Already destroyed in createAltitudeChart
-            createAltitudeChart(currentGpxData);
-        }
-        if (speedChart) {
-            // speedChart.destroy(); // Already destroyed in createSpeedChart
-            createSpeedChart(currentGpxData);
-        }
+    // THIS IS THE CRITICAL SECTION TO FIX:
+    if (gpxData && gpxData.points && gpxData.points.length > 0) { // Use global gpxData
+        // If charts exist, they are destroyed by their respective create functions before recreating
+        // No need to check if altitudeChart or speedChart exist here,
+        // createAltitudeChart/createSpeedChart handle their own destruction/creation.
+        // However, the create functions themselves will check if the canvas elements exist.
+
+        console.log('[applyTheme] Recreating charts for new theme with gpxData.');
+        createAltitudeChart(gpxData); // Pass global gpxData
+        createSpeedChart(gpxData);   // Pass global gpxData
+    } else {
+        console.log('[applyTheme] Not recreating charts as gpxData is not available or empty.');
+    }
+
+    // Also, the main track polyline color on the map might need updating if it's theme-dependent
+    // and not automatically handled by Leaflet CSS.
+    // Assuming the polyline color is set from CSS variables during initMap,
+    // we might need to re-apply it or update its style if map exists.
+    if (map && gpxData && gpxData.points && gpxData.points.length > 0) {
+        // Find the main polyline layer. This is tricky if not stored globally.
+        // For now, assume initMap would be called again if this were a full theme rebuild.
+        // Or, if the polyline object is stored (e.g., mainTrackPolyline), update its style.
+        // Let's search for how the polyline is added in initMap.
+        // L.polyline(latLngs, { color: polylineColor }).addTo(map);
+        // If `mainTrackPolyline` is a global var holding this:
+        // if (mainTrackPolyline) {
+        //     const newPolylineColor = getComputedStyle(document.documentElement).getPropertyValue('--gpx-data-strong-color').trim() || 'blue';
+        //     mainTrackPolyline.setStyle({ color: newPolylineColor });
+        // }
+        // For now, this subtask will focus only on fixing the ReferenceError with charts.
+        // Polyline theme update can be a separate enhancement if needed.
     }
 }
 
