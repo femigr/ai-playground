@@ -82,7 +82,6 @@
 /* Apply variables */
 body {
     margin: 0; /* Ensure no external margins */
-    padding-top: 70px; /* For sticky header */
     padding-left: 20px; /* Side spacing */
     padding-right: 20px; /* Side spacing */
     padding-bottom: 80px; /* For fixed stats bar */
