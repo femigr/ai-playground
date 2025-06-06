@@ -81,13 +81,15 @@
 
 /* Apply variables */
 body {
-    padding-top: 70px; /* Add padding to body to account for sticky header height */
+    margin: 0; /* Ensure no external margins */
+    padding-top: 70px; /* For sticky header */
+    padding-left: 20px; /* Side spacing */
+    padding-right: 20px; /* Side spacing */
+    padding-bottom: 80px; /* For fixed stats bar */
     font-family: 'Montserrat', sans-serif;
-    margin: 0 20px 20px 20px; /* Top margin removed, others kept */
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6; /* Improve general readability */
-    padding-bottom: 80px; /* Adjusted for taller stats bar */
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -241,20 +243,20 @@ h1 {
 }
 
 .theme-selector {
-  padding: 0; /* Adjusted for footer */
-  background-color: transparent; /* Ensure it's transparent in footer */
-  border-radius: 5px; /* Keep or adjust */
-  margin-left: auto; /* Push to the right of other flex items */
-  display: flex; /* For aligning label and select */
-  align-items: center; /* For aligning label and select */
+  display: block;
+  width: fit-content; /* Or a specific max-width if preferred */
+  margin: 25px auto; /* Centering and vertical spacing */
+  padding: 15px 20px; /* Generous padding */
+  background-color: var(--input-bg-color); /* Consistent with other controls */
+  border-radius: 8px; /* Consistent rounded corners */
+  box-shadow: 0 2px 4px var(--gpx-data-shadow); /* Consistent shadow */
 }
 .theme-selector label {
   margin-right: 5px;
-  color: var(--stats-text-color); /* Match footer text color */
-  /* vertical-align: middle; */ /* Not needed with flex align-items: center */
+  color: var(--text-color); /* Reverted to general text color */
 }
 .theme-selector select {
-  padding: 5px 8px; /* Reduced padding for footer */
+  padding: 12px; /* Reverted to larger padding */
   border-radius: 6px;
   border: 1px solid var(--select-border-color);
   background-color: var(--select-bg-color);

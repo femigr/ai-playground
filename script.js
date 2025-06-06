@@ -544,39 +544,18 @@ function calculateAndDisplayStats(gpxData) {
     const statsInnerContainer = document.getElementById('statsInnerContainer');
     if (!statsInnerContainer) {
         console.error("#statsInnerContainer element not found. Cannot display stats.");
-        // Fallback or alternative: If statsContainer (parent) is guaranteed,
-        // and we absolutely must have statsInnerContainer:
-        // const parentContainer = document.getElementById('statsContainer');
-        // if (parentContainer) {
-        //     statsInnerContainer = parentContainer.querySelector('#statsInnerContainer');
-        //     if (!statsInnerContainer) { /* could create and append it here if necessary */ }
-        // } else {
-        //    console.error("Stats container (parent) not found!");
-        //    return;
-        // }
-        // For now, we assume #statsInnerContainer is correctly defined in index.html
         return;
     }
 
-    // Clear only previous stat items from statsInnerContainer
-    const oldStatItems = statsInnerContainer.querySelectorAll('.stat-item');
-    oldStatItems.forEach(item => item.remove());
+    // Clear any previous content from statsInnerContainer
+    statsInnerContainer.innerHTML = '';
 
-    // Append new stat items (theme selector will be preserved)
-    statsData.forEach(stat => {
+    // Append new stat items
+    statsData.forEach(stat => { // statsData is calculated earlier in the function
         const statElement = document.createElement('span');
         statElement.classList.add('stat-item');
         statElement.innerHTML = `<strong>${stat.label}</strong> ${stat.value}`;
-        // Prepend stat items to keep theme selector last, or append and adjust CSS order if needed.
-        // For now, appending and relying on flex order or CSS order property for theme selector.
-        // If theme selector should always be last, it should be appended *after* these stat items.
-        // The current HTML structure has theme selector last. So stat items should be inserted *before* it.
-        const themeSelectorDiv = statsInnerContainer.querySelector('.theme-selector');
-        if (themeSelectorDiv) {
-            statsInnerContainer.insertBefore(statElement, themeSelectorDiv);
-        } else {
-            statsInnerContainer.appendChild(statElement); // Fallback if theme selector not found
-        }
+        statsInnerContainer.appendChild(statElement);
     });
 }
 
